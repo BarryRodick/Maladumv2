@@ -1,0 +1,365 @@
+/* styles/styles.css */
+
+/* Updated CSS (styles.css) with Improved Background and Mobile Enhancements */
+
+/* Background with Subtle Gradient */
+.dark-green-bar {
+    background-color: #001300; /* Dark green color */
+    width: 100%;
+    padding: 10px;
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background: url('../cardimages/background.png') no-repeat center center fixed;
+    background-size: cover;
+    color: #ffffff;
+    position: relative; /* To ensure ::before overlay works correctly */
+}
+
+body.dark-mode::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5); /* Dark overlay with 50% opacity */
+    z-index: -1;
+}
+
+/* Game Checkboxes Styling */
+#gameCheckboxes {
+    background-color: rgba(0, 0, 0, 0.7); /* Black with 70% opacity */
+    padding: 10px;
+    border-radius: 8px;
+    color: #ffffff; /* Ensure text is white for better contrast */
+}
+
+/* Dark Mode Card Styling */
+body.dark-mode .card {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+.card-item strong {
+    background-color: rgba(0, 0, 0, 0.7); /* Black background with 70% opacity */
+    color: #ffffff; /* White text for contrast */
+    padding: 5px 10px; /* Add some padding around the text */
+    border-radius: 4px; /* Slightly round the corners */
+}
+
+/* Enhanced Buttons */
+.btn {
+    background: linear-gradient(135deg, #001300, #015701);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn:active,
+.button-pressed {
+    transform: scale(0.98);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Ripple Effect */
+.btn .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    transform: scale(0);
+    animation: ripple-animation 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* App Header Styling */
+.app-header {
+    background-color: rgba(0, 0, 0, 0.8); /* Black with some opacity */
+    padding: 20px;
+    border-radius: 8px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Distribute space between header elements */
+    flex-wrap: wrap; /* Wrap content if needed for smaller screens */
+}
+
+.app-logo-text {
+    margin: 0; /* Remove default margin from h1 */
+    font-size: 1.5rem; /* Adjust font size */
+}
+
+#headerButtons {
+    display: flex;
+    gap: 10px; /* Space between the buttons */
+}
+
+#headerButtons .btn {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: bold;
+    background: rgba(0, 19, 0, 0.6); /* Slight background for visibility */
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+#headerButtons .btn:hover {
+    background-color: rgba(1, 87, 1, 0.8); /* Darker green background on hover */
+}
+
+/* Card Item Styling */
+.card-item {
+    text-align: center;
+    transition: opacity 0.5s ease-in-out;
+    margin: 0 auto;
+    max-width: 350px;
+    position: relative;
+    z-index: 1;
+    height: 500px;
+    overflow: hidden;
+}
+
+.card-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    margin: 0 auto;
+    display: block;
+    border: 1px solid #001300;
+    border-radius: 8px;
+}
+
+/* Updated Progress Bar Styles */
+.progress {
+    height: 25px;
+    margin-bottom: 10px;
+    background-color: #e0e0e0; /* Light gray background for better contrast */
+    border-radius: 8px; /* Rounded corners for a cleaner look */
+}
+
+.progress-bar {
+    font-weight: bold;
+    font-size: 16px;
+    line-height: 25px;
+    background-color: #015701; /* Dark green fill color */
+    color: #ffffff; /* White text for contrast */
+    border-radius: 8px; /* Match background corners */
+    transition: width 0.4s ease; /* Smooth transition for progress changes */
+}
+
+/* Card Type Input Container Styling */
+.card-type-input {
+    background-color: rgba(0, 0, 0, 0.8); /* Black with some opacity */
+    padding: 10px;
+    border-radius: 8px;
+    color: #ffffff;
+}
+
+.card-type-input .card-title {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.card-type-input .input-count {
+    width: 60px;
+    margin-left: 10px;
+}
+
+/* Responsive Design for Card Type Inputs */
+@media (max-width: 768px) {
+    .card-type-input {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .card-type-input .input-count {
+        margin-left: 0;
+        margin-top: 5px;
+    }
+    .card-type-input .d-flex {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+}
+
+/* Modal Image Styling */
+.modal-body img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Card Action Section Styling */
+#cardActionSection {
+    margin-top: 20px;
+}
+
+#actionTopNInput {
+    margin-top: 10px;
+}
+
+/* Decrease and Increase Button Styling within Card Type Inputs */
+.card-type-input .decrease-btn,
+.card-type-input .increase-btn {
+    width: 30px;
+    height: 30px;
+    line-height: 1;
+    text-align: center;
+    padding: 0;
+}
+
+/* Enhanced Buttons for Touch Devices */
+.button-pressed {
+    transform: scale(0.98);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Ensure the button remains responsive */
+button {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Highlight input fields when counts are updated */
+.highlight-input {
+    background-color: #ffeb3b; /* Bright yellow background */
+    transition: background-color 0.5s ease;
+}
+
+/* Adjusted CSS for Scenario Config section */
+#scenarioConfig {
+    padding: 15px;
+    border: 1px solid #444; /* Darker border for contrast */
+    border-radius: 5px;
+    background-color: #333; /* Dark background to match dark mode */
+    color: #ffffff; /* White text for better readability */
+    margin-bottom: 20px;
+}
+
+/* Toast Container Positioning */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050;
+}
+
+/* Additional Styling for Select Elements in Dark Mode */
+body.dark-mode select.form-control {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border: 1px solid #444;
+}
+
+body.dark-mode select.form-control:focus {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border-color: #007bff;
+    box-shadow: none;
+}
+
+/* Styling for Labels in Dark Mode */
+body.dark-mode label {
+    color: #ffffff;
+}
+
+/* Styling for Small Text in Dark Mode */
+body.dark-mode small.form-text {
+    color: #cccccc;
+}
+
+/* Ensure Inputs Have Transparent Background in Dark Mode */
+body.dark-mode input.form-control,
+body.dark-mode select.form-control {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid #444;
+}
+
+body.dark-mode input.form-control::placeholder {
+    color: #aaaaaa;
+}
+
+/* Remove default focus outline and add custom */
+input:focus, select:focus, button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #007bff;
+}
+
+/* Adjust Toast Background for Dark Mode */
+body.dark-mode .toast {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #ffffff;
+}
+
+/* Ensure all buttons have white text in dark mode */
+body.dark-mode .btn {
+    color: #ffffff;
+}
+
+/* Adjust Close Button in Toasts for Visibility */
+.toast .close {
+    color: #ffffff;
+    opacity: 1;
+}
+
+/* In Play Cards Section Styling (Feature 2) */
+#inPlaySection {
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 15px;
+    border-radius: 8px;
+    color: #ffffff;
+}
+
+#inPlayCards .card-item {
+    margin: 10px;
+    max-width: 200px;
+}
+
+#inPlayCards .card-image {
+    max-width: 100%;
+    max-height: 150px;
+}
+
+/* Additional Adjustments for In Play Cards */
+#inPlayCards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Style for the FAQ icon */
+.faq-icon {
+    font-size: 1.5rem; /* Adjust the size as needed */
+    color: #ffffff; /* Ensure the icon contrasts with the dark header */
+    text-decoration: none;
+    margin-left: 15px; /* Space between existing buttons and the icon */
+    display: flex;
+    align-items: center;
+}
+
+.faq-icon:hover {
+    color: #cccccc; /* Change color on hover for better UX */
+    text-decoration: none;
+}
+
+/* Responsive adjustments if needed */
+@media (max-width: 576px) {
+    .faq-icon {
+        font-size: 1.2rem;
+        margin-left: 10px;
+    }
+}

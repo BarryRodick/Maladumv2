@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZMTSM9B7Q7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-ZMTSM9B7Q7');
+    </script>
+    
+    <!-- Buy Me a Coffee Button -->
+    
+    
+    <!-- Head content -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About / FAQ - Deck Builder</title>
+    
+    <!-- Include Bootstrap CSS with SRI -->
+    <link 
+      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css" 
+      rel="stylesheet" 
+      integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" 
+      crossorigin="anonymous"
+    >
+    
+    <!-- Include Font Awesome CSS for Icons with Correct SRI from cdnjs -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    
+    <!-- Include custom styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Link to the manifest file for PWA -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Theme color for PWA -->
+    <meta name="theme-color" content="#121212">
+    
+    <!-- Custom Styles for Header and Content -->
+    <style>
+        /* Style for the FAQ icon */
+        .faq-icon {
+            font-size: 1.5rem; /* Adjust the size as needed */
+            color: #ffffff; /* Ensure the icon contrasts with the dark header */
+            text-decoration: none;
+            margin-left: 15px; /* Space between existing buttons and the icon */
+            display: flex;
+            align-items: center;
+        }
+
+        .faq-icon:hover {
+            color: #cccccc; /* Change color on hover for better UX */
+            text-decoration: none;
+        }
+
+        /* Responsive adjustments if needed */
+        @media (max-width: 576px) {
+            .faq-icon {
+                font-size: 1.2rem;
+                margin-left: 10px;
+            }
+        }
+
+        /* Highlight class for difficulty details */
+        .highlight-input {
+            animation: highlight 2s ease;
+        }
+
+        @keyframes highlight {
+            from { background-color: #ffc107; }
+            to { background-color: transparent; }
+        }
+
+        /* Custom styles for the content */
+        .content-section {
+            margin-top: 20px;
+        }
+
+        .content-section h2 {
+            margin-bottom: 15px;
+        }
+
+        .content-section ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+
+        /* Style for navigation button */
+        .back-button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body class="dark-mode">
+
+    <!-- Header Section -->
+    <header class="app-header dark-green-bar d-flex align-items-center justify-content-between p-3">
+        <h1 class="app-logo-text mb-0">Event Cards</h1>
+
+        <div id="headerButtons" class="d-flex align-items-center">
+            <!-- Home Icon -->
+            <a href="index.html" class="btn btn-link faq-icon" title="Back to Home" aria-label="Back to Home">
+                <i class="fas fa-home"></i>
+            </a>
+            
+            <!-- Buy Me a Coffee Button -->
+            <div class="bmc-button-container ml-3">
+                <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="barryrodics" data-color="#000000" data-emoji="🎲" data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#ffffff" data-font-color="#ffffff" data-coffee-color="#FFDD00"></script>
+            </div>
+        </div>
+        </div>
+    </header>
+    
+    <div class="container my-4">
+
+        <!-- About Section -->
+        <section class="content-section">
+            <h2>About Deck Builder</h2>
+            <p>
+                Deckbuilder has been designed specifically for <strong>Maladum</strong>. I found configuring the event deck to be a little clunky, and for a single-player game, the additional setup time was something I wanted to avoid.
+            </p>
+            <p>
+                Deckbuilder removes the need for you to set up and configure the event deck, select your cards, set the scenario rules, and voila—you are good to go!
+            </p>
+            <p>
+                Maladum is a great game, and I am glad to be able to offer something back to the community.
+            </p>
+        </section>
+
+        <!-- Features Section -->
+        <section class="content-section">
+            <h2>Features</h2>
+            <ul>
+                <li><strong>Select Games:</strong> Choose from a range of game expansions to include their respective cards in your deck.</li>
+                <li><strong>Select Card Types:</strong> Specify the types of cards you want in your deck, such as Environment, Revenant, Novice, and more.</li>
+                <li><strong>Difficulty Levels:</strong> Adjust the number of Novice and Veteran cards based on your preferred difficulty setting.</li>
+                <li><strong>Special Rules:</strong>
+                    <ul>
+                        <li><strong>Sentry Rules:</strong> Enable the inclusion of Sentry cards (e.g., Revenant, Malagaunt) to introduce unique challenges into your deck.</li>
+                        <li><strong>Corrupter Rules:</strong> Enable Corrupter cards that replace random cards in your deck, adding unpredictability and complexity.</li>
+                    </ul>
+                </li>
+                <li><strong>Progress Tracking:</strong> Monitor your deck generation progress with a visual progress bar.</li>
+                <li><strong>Card Actions:</strong> Perform actions on individual cards, such as shuffling them back into the deck or replacing them with unseen cards.</li>
+                <li><strong>In Play Management:</strong> Keep track of cards that are currently in play and manage them effectively.</li>
+                <li><strong>Persistent Configuration:</strong> Your deck configurations are saved automatically, allowing you to return and continue building without losing your settings.</li>
+                <li><strong>Service Worker Integration:</strong> Enjoy a seamless experience with offline capabilities and update notifications.</li>
+            </ul>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="content-section">
+            <h2>Frequently Asked Questions (FAQ)</h2>
+            <div class="accordion" id="faqAccordion">
+                <div class="card">
+                    <div class="card-header" id="headingOne">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                1. How do I select the games for my deck?
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#faqAccordion">
+                        <div class="card-body">
+                            Click on the "Select Games" button in the header to choose which game expansions you want to include. Selecting a game will load all its associated cards into the deck builder.
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" id="headingTwo">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                2. How do I select card types?
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#faqAccordion">
+                        <div class="card-body">
+                            After selecting your desired games, use the "Select Card Types" button to specify which types of cards you want in your deck. You can adjust the number of each card type using the provided controls.
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" id="headingThree">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                3. What are Difficulty Levels?
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#faqAccordion">
+                        <div class="card-body">
+                            Difficulty Levels allow you to adjust the complexity of your deck by setting the number of Novice and Veteran cards. Higher difficulty settings increase the number of Veteran cards, making the deck more challenging.
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" id="headingFour">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                4. What are Sentry and Corrupter Rules?
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#faqAccordion">
+                        <div class="card-body">
+                            <strong>Sentry Rules:</strong> When enabled, Sentry cards such as Revenant and Malagaunt are added to your deck when you apply the correct 'Card Action'.<br>
+                            <strong>Corrupter Rules:</strong> Enabling Corrupter rules replaces a specified number of random cards in your deck with Corrupter cards, adding unpredictability and complexity to your gameplay.
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" id="headingFive">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                5. How does deck generation work?
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapseFive" class="collapse" aria-labelledby="headingFive" data-parent="#faqAccordion">
+                        <div class="card-body">
+                            Once you've selected your games, card types, and configured any special rules, click the "Generate Deck" button. The application will compile your selections into a customized deck, applying any rules you've set. You can then navigate through your deck using the provided controls.
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" id="headingSix">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                                6. How can I manage cards that are in play?
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapseSix" class="collapse" aria-labelledby="headingSix" data-parent="#faqAccordion">
+                        <div class="card-body">
+                            As you navigate through your deck, you can mark cards as "In Play" by clicking the respective button. This allows you to keep track of active cards and manage them effectively within your gameplay.
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" id="headingSeven">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                                7. Will my configurations be saved?
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapseSeven" class="collapse" aria-labelledby="headingSeven" data-parent="#faqAccordion">
+                        <div class="card-body">
+                            Yes! Your deck configurations are automatically saved in your browser's local storage. This means you can close the application and return later to find your settings intact.
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" id="headingEight">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
+                                8. What happens when there's an update to the application?
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapseEight" class="collapse" aria-labelledby="headingEight" data-parent="#faqAccordion">
+                        <div class="card-body">
+                            If a new version of the application is available, you'll receive a notification prompting you to reload the page. This ensures you always have access to the latest features and improvements.
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" id="headingNine">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseNine" aria-expanded="false" aria-controls="collapseNine">
+                                9. Can I use the Deck Builder offline?
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapseNine" class="collapse" aria-labelledby="headingNine" data-parent="#faqAccordion">
+                        <div class="card-body">
+                            Yes! Thanks to Service Worker integration, you can use the Deck Builder even when you're offline. Any changes or configurations you make while offline will be saved and synchronized once you're back online.
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" id="headingTen">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTen" aria-expanded="false" aria-controls="collapseTen">
+                                10. Can we get one of these for CoreSpace?
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapseTen" class="collapse" aria-labelledby="headingTen" data-parent="#faqAccordion">
+                        <div class="card-body">
+                            Yes, it's in the works. I need some images of the Event Cards so I'm just waiting on them.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Back to Home Button -->
+        <div class="text-center back-button">
+            <a href="index.html" class="btn btn-primary">
+                <i class="fas fa-home mr-2"></i> Back to Home
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Include jQuery JS with SRI -->
+    <script 
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" 
+      integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" 
+      crossorigin="anonymous">
+    </script>
+    
+    <!-- Include Popper.js with SRI -->
+    <script 
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js" 
+      integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" 
+      crossorigin="anonymous">
+    </script>
+    
+    <!-- Include Bootstrap JS with SRI -->
+    <script 
+      src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js" 
+      integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" 
+      crossorigin="anonymous">
+    </script>
+
+    <!-- Include Deck Builder JS (if any specific scripts needed for about.html) -->
+    <!-- <script src="deckbuilder.js"></script> -->
+
+</body>
+</html>
