@@ -3,30 +3,37 @@
 import { registerServiceWorker } from './serviceWorkerRegistration.js';
 import { loadData } from './dataLoader.js';
 import { generateGameSelection, generateCardTypeInputs, populateDifficultySelection } from './uiGenerator.js';
-import { initializeDeckManager, showCurrentCard, applyCardAction } from './deckManager.js';
+import { DeckManager } from './deckManager.js';
 import { setupEventListeners } from './eventHandlers.js';
-import { loadConfiguration } from './configManager.js';
 
 (async () => {
     // Register Service Worker
     registerServiceWorker();
 
     // Load Data
-    const { cardsData, difficultiesData } = await loadData();
+    let data;
+    let difficulties;
+    try {
+        const loadedData = await loadData();
+        data = loadedData.cardsData;
+        difficulties = loadedData.difficultiesData;
+    } catch (error) {
+        // Handle data loading failure
+        return;
+    }
 
     // Initialize Deck Manager
-    const selectedGames = []; // Initialize as empty; will be populated by UI
-    const deckManager = initializeDeckManager(cardsData, difficultiesData, Object.keys(cardsData.games));
+    const deckManager = new DeckManager(data, difficulties.difficulties);
 
     // Generate Game Selection UI
-    generateGameSelection(Object.keys(cardsData.games), deckManager.selectedGames);
+    const selectedGames = deckManager.loadSelectedGames(); // Implement this method in DeckManager if needed
+    generateGameSelection(Object.keys(data.games), selectedGames);
 
     // Generate Card Type Inputs UI
-    deckManager.groupCardsByType();
-    generateCardTypeInputs(deckManager.allCardTypes, deckManager.deckDataByType, deckManager.cardCounts, deckManager.sentryCardTypes, deckManager.corrupterCardTypes);
+    generateCardTypeInputs(deckManager.allCardTypes, deckManager.deckDataByType, deckManager.getCardCounts(), deckManager.sentryCardTypes, deckManager.corrupterCardTypes);
 
     // Populate Difficulty Selection
-    populateDifficultySelection(difficultiesData.difficulties, deckManager.savedDifficultyIndex || 0);
+    populateDifficultySelection(difficulties.difficulties, deckManager.savedDifficultyIndex || 0);
 
     // Setup Event Listeners
     setupEventListeners(deckManager);
