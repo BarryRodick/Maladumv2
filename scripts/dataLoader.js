@@ -9,8 +9,8 @@ import { showToast } from './helpers.js';
 export async function loadData() {
     try {
         const [cardsResponse, difficultiesResponse] = await Promise.all([
-            fetch('data/maladumcards.json'),
-            fetch('data/difficulties.json')
+            fetch('../data/maladumcards.json'),
+            fetch('../data/difficulties.json')
         ]);
 
         if (!cardsResponse.ok || !difficultiesResponse.ok) {
