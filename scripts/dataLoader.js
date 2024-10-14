@@ -4,13 +4,15 @@ import { showToast } from './helpers.js';
 
 /**
  * Loads JSON data for cards and difficulties.
+ * @param {string} cardsPath - Path to the cards JSON file.
+ * @param {string} difficultiesPath - Path to the difficulties JSON file.
  * @returns {Promise<{cardsData: Object, difficultiesData: Object}>}
  */
-export async function loadData() {
+export async function loadData(cardsPath = './data/maladumcards.json', difficultiesPath = '/data/difficulties.json') {
     try {
         const [cardsResponse, difficultiesResponse] = await Promise.all([
-            fetch('../data/maladumcards.json'),
-            fetch('../data/difficulties.json')
+            fetch(cardsPath),
+            fetch(difficultiesPath)
         ]);
 
         if (!cardsResponse.ok || !difficultiesResponse.ok) {

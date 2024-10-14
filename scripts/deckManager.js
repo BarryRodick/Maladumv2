@@ -28,6 +28,7 @@ export class DeckManager {
         this.sentryCardTypes = ['Sentry']; // Define your Sentry types
         this.corrupterCardTypes = ['Corrupter']; // Define your Corrupter types
         this.heldBackCardTypes = ['HeldBack']; // Define your Held Back types
+        this.savedDifficultyIndex = 0;
     }
 
     /**
@@ -101,6 +102,30 @@ export class DeckManager {
     }
 
     /**
+     * Retrieves special card counts (Corrupters) from localStorage or UI.
+     * @returns {Object} - Special card counts by type.
+     */
+    getSpecialCardCounts() {
+        const counts = {};
+        this.corrupterCardTypes.forEach(type => {
+            counts[type] = getSavedSpecialCardCount(type);
+        });
+        return counts;
+    }
+
+    /**
+     * Retrieves sentry card counts from localStorage or UI.
+     * @returns {Object} - Sentry card counts by type.
+     */
+    getSentryCardCounts() {
+        const counts = {};
+        this.sentryCardTypes.forEach(type => {
+            counts[type] = getSavedSentryCardCount(type);
+        });
+        return counts;
+    }
+
+    /**
      * Generates the deck based on user-selected counts and rules.
      * @param {Object} cardCounts - Regular card counts by type.
      * @param {Object} specialCardCounts - Special card counts by type (Corrupter).
@@ -108,7 +133,7 @@ export class DeckManager {
      * @param {boolean} isSentryEnabled - Flag to enable Sentry rules.
      * @param {boolean} isCorrupterEnabled - Flag to enable Corrupter rules.
      */
-    generateDeck(cardCounts, specialCardCounts, sentryCardCounts, isSentryEnabled, isCorrupterEnabled) {
+    generateDeck(cardCounts = this.getCardCounts(), specialCardCounts = this.getSpecialCardCounts(), sentryCardCounts = this.getSentryCardCounts(), isSentryEnabled = false, isCorrupterEnabled = false) {
         if (this.selectedGames.length === 0) {
             showToast('Please select at least one game.');
             return;
@@ -146,8 +171,8 @@ export class DeckManager {
         });
 
         // Select Corrupter cards
-        this.allCardTypes.forEach(type => {
-            if (this.corrupterCardTypes.includes(type) && isCorrupterEnabled) {
+        this.corrupterCardTypes.forEach(type => {
+            if (isCorrupterEnabled) {
                 const count = specialCardCounts[type];
                 if (count > 0) {
                     const selected = this.selectCardsByType(type, count, specialCardCounts, true);
@@ -157,8 +182,8 @@ export class DeckManager {
         });
 
         // Select Sentry cards
-        this.allCardTypes.forEach(type => {
-            if (this.sentryCardTypes.includes(type) && isSentryEnabled) {
+        this.sentryCardTypes.forEach(type => {
+            if (isSentryEnabled) {
                 const count = sentryCardCounts[type];
                 if (count > 0) {
                     const selected = this.selectCardsByType(type, count, sentryCardCounts, true);
@@ -196,7 +221,7 @@ export class DeckManager {
         this.regularDeck = shuffleDeck(this.regularDeck);
 
         // Combine decks
-        this.currentDeck = this.regularDeck.concat(this.specialDeck);
+        this.currentDeck = this.regularDeck.concat(this.specialDeck).concat(this.sentryDeck);
 
         this.initialDeckSize = this.currentDeck.length;
 
@@ -207,7 +232,67 @@ export class DeckManager {
         this.displayDeck();
     }
 
-    // ... [Rest of the DeckManager class methods as previously provided] ...
+    /**
+     * Selects a specified number of cards from a given type.
+     * @param {string} type - The card type.
+     * @param {number} count - Number of cards to select.
+     * @param {Object} counts - The current counts object.
+     * @param {boolean} isSpecial - Flag indicating if the card is special.
+     * @returns {Array} - Array of selected cards.
+     */
+    selectCardsByType(type, count, counts, isSpecial = false) {
+        const available = this.deckDataByType[type] || [];
+        if (available.length < count) {
+            showToast(`Not enough cards available for type: ${type}`);
+            return [];
+        }
+        // Shuffle available cards before selection
+        const shuffled = shuffleDeck(available);
+        const selected = shuffled.slice(0, count);
+        // Remove selected cards from availableCards to prevent duplicates
+        this.availableCards = this.availableCards.filter(card => !selected.includes(card));
+        // Update selectedCardsMap
+        selected.forEach(card => this.selectedCardsMap.set(card.id, card));
+        return selected;
+    }
+
+    /**
+     * Selects held-back cards by type.
+     * @param {string} type - The held-back card type.
+     * @param {number} count - Number of cards to select.
+     * @returns {Array} - Array of selected held-back cards.
+     */
+    selectHeldBackCardsByType(type, count) {
+        const available = this.deckDataByType[type] || [];
+        if (available.length < count) {
+            showToast(`Not enough held-back cards available for type: ${type}`);
+            return [];
+        }
+        const shuffled = shuffleDeck(available);
+        const selected = shuffled.slice(0, count);
+        // These cards are set aside and not part of the current deck
+        this.setAsideCards = this.setAsideCards.concat(selected);
+        return selected;
+    }
+
+    /**
+     * Retrieves a specified number of special cards from given types.
+     * @param {number} count - Number of special cards to retrieve.
+     * @param {Array} specialTypes - Array of special card types.
+     * @returns {Array} - Array of selected special cards.
+     */
+    getSpecialCards(count, specialTypes) {
+        let specialCards = [];
+        specialTypes.forEach(type => {
+            const available = this.deckDataByType[type] || [];
+            specialCards = specialCards.concat(available);
+        });
+        if (specialCards.length < count) {
+            showToast('Not enough special cards available.');
+            return [];
+        }
+        return shuffleDeck(specialCards).slice(0, count);
+    }
 
     /**
      * Saves the current configuration to localStorage.
@@ -216,9 +301,9 @@ export class DeckManager {
         const config = {
             selectedGames: this.selectedGames,
             selectedDifficultyIndex: this.savedDifficultyIndex || 0,
-            cardCounts: {}, // Populate based on UI or internal state
-            specialCardCounts: {}, // Populate based on UI or internal state
-            sentryCardCounts: {}, // Populate based on UI or internal state
+            cardCounts: this.getCardCounts(),
+            specialCardCounts: this.getSpecialCardCounts(),
+            sentryCardCounts: this.getSentryCardCounts(),
             enableSentryRules: document.getElementById('enableSentryRules')?.checked || false,
             enableCorrupterRules: document.getElementById('enableCorrupterRules')?.checked || false,
             currentDeckIds: this.currentDeck.map(card => card.id),
@@ -228,20 +313,6 @@ export class DeckManager {
             initialDeckSize: this.initialDeckSize,
             sentryDeckIds: this.sentryDeck.map(card => card.id)
         };
-
-        // Populate cardCounts, specialCardCounts, sentryCardCounts based on UI inputs
-        const cardTypeInputs = document.querySelectorAll('.input-count');
-        cardTypeInputs.forEach(input => {
-            const type = input.id.replace('type-', '');
-            const value = parseInt(input.value) || 0;
-            if (this.sentryCardTypes.includes(type) && config.enableSentryRules) {
-                config.sentryCardCounts[type] = value;
-            } else if (this.corrupterCardTypes.includes(type) && config.enableCorrupterRules) {
-                config.specialCardCounts[type] = value;
-            } else {
-                config.cardCounts[type] = value;
-            }
-        });
 
         // Save to localStorage
         saveConfiguration(config);
@@ -253,39 +324,113 @@ export class DeckManager {
     loadConfiguration() {
         const savedConfig = loadConfiguration();
         if (savedConfig) {
-            this.selectedGames = savedConfig.selectedGames || [];
+            this.selectedGames = savedConfig.selectedGames || this.selectedGames;
             this.savedDifficultyIndex = savedConfig.selectedDifficultyIndex || 0;
-            this.currentDeck = savedConfig.currentDeckIds.map(id => findCardById(id, this.dataStore)) || [];
+            this.currentDeck = savedConfig.currentDeckIds.map(id => findCardById(id, this.dataStore)).filter(card => card) || [];
             this.currentIndex = savedConfig.currentIndex || -1;
-            this.discardPile = savedConfig.discardPileIds.map(id => findCardById(id, this.dataStore)) || [];
-            this.inPlayCards = savedConfig.inPlayCardIds.map(id => findCardById(id, this.dataStore)) || [];
-            this.initialDeckSize = savedConfig.initialDeckSize || 0;
-            this.sentryDeck = savedConfig.sentryDeckIds.map(id => findCardById(id, this.dataStore)) || [];
+            this.discardPile = savedConfig.discardPileIds.map(id => findCardById(id, this.dataStore)).filter(card => card) || [];
+            this.inPlayCards = savedConfig.inPlayCardIds.map(id => findCardById(id, this.dataStore)).filter(card => card) || [];
+            this.initialDeckSize = savedConfig.initialDeckSize || this.currentDeck.length;
+            this.sentryDeck = savedConfig.sentryDeckIds.map(id => findCardById(id, this.dataStore)).filter(card => card) || [];
+
+            // Display the deck and current card
+            this.displayDeck();
+            this.showCurrentCard();
+            this.updateInPlayCardsDisplay();
         }
     }
 
-    // ... [Continue with other DeckManager methods as needed] ...
-
-
-
     /**
-     * Resets available cards without affecting user inputs.
+     * Displays the entire deck in the UI.
      */
-    resetAvailableCards() {
-        let allCards = [];
-        this.selectedGames.forEach(game => {
-            if (this.dataStore.games[game]) {
-                allCards = allCards.concat(this.dataStore.games[game]);
-            }
-        });
-
-        this.availableCards = [...allCards];
+    displayDeck() {
+        const deckContainer = document.getElementById('deckContainer');
+        if (deckContainer) {
+            deckContainer.innerHTML = ''; // Clear existing deck display
+            this.currentDeck.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card-item', 'mb-2', 'p-2', 'border', 'rounded');
+                cardElement.textContent = `${index + 1}. ${card.name} - ${card.type}`;
+                deckContainer.appendChild(cardElement);
+            });
+        }
     }
 
     /**
-     * Shuffles the entire regular deck.
+     * Displays the current card based on the current index.
      */
-    shuffleRegularDeck() {
-        this.regularDeck = shuffleDeck(this.regularDeck);
+    showCurrentCard() {
+        const currentCardDisplay = document.getElementById('currentCardDisplay');
+        if (currentCardDisplay) {
+            if (this.currentIndex >= 0 && this.currentIndex < this.currentDeck.length) {
+                const currentCard = this.currentDeck[this.currentIndex];
+                currentCardDisplay.textContent = `Card ${this.currentIndex + 1}/${this.currentDeck.length}: ${currentCard.name} - ${currentCard.description}`;
+            } else {
+                currentCardDisplay.textContent = 'No current card to display.';
+            }
+        }
+    }
+
+    /**
+     * Applies a selected action to the deck.
+     * @param {string} action - The action to apply.
+     * @param {number} n - The number associated with the action (if applicable).
+     */
+    applyCardAction(action, n) {
+        switch(action) {
+            case 'shuffleTopN':
+                if (n > 0 && n <= this.currentDeck.length) {
+                    const topNCards = this.currentDeck.slice(0, n);
+                    const shuffledTop = shuffleDeck(topNCards);
+                    this.currentDeck = shuffledTop.concat(this.currentDeck.slice(n));
+                    showToast(`Top ${n} cards shuffled.`);
+                    this.displayDeck();
+                } else {
+                    showToast('Invalid number of cards to shuffle.');
+                }
+                break;
+            // Implement other actions as needed
+            default:
+                showToast('Selected action is not implemented.');
+        }
+        this.saveCurrentConfiguration();
+    }
+
+    /**
+     * Marks a card as in play.
+     * @param {Object} card - The card to mark as in play.
+     */
+    markCardAsInPlay(card) {
+        if (!this.inPlayCards.includes(card)) {
+            this.inPlayCards.push(card);
+            this.saveCurrentConfiguration();
+            this.updateInPlayCardsDisplay();
+        }
+    }
+
+    /**
+     * Clears all in-play cards.
+     */
+    clearInPlayCards() {
+        this.inPlayCards = [];
+        this.saveCurrentConfiguration();
+        this.updateInPlayCardsDisplay();
+        showToast('All in-play cards have been cleared.');
+    }
+
+    /**
+     * Updates the in-play cards display in the UI.
+     */
+    updateInPlayCardsDisplay() {
+        const inPlayContainer = document.getElementById('inPlayContainer');
+        if (inPlayContainer) {
+            inPlayContainer.innerHTML = '';
+            this.inPlayCards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('in-play-card', 'mb-2', 'p-2', 'border', 'rounded');
+                cardElement.textContent = `${card.name} - ${card.type}`;
+                inPlayContainer.appendChild(cardElement);
+            });
+        }
     }
 }

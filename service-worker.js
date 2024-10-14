@@ -1,84 +1,92 @@
-// service-worker.js for PWA functionality
+// service-worker.js
 
-const CACHE_NAME = 'deck-builder-v1.6'; // Incremented version
+const CACHE_NAME = 'deck-builder-cache-v1';
 const urlsToCache = [
-    './',
-    './index.html',
-    './styles.css',
-    './deckbuilder.js',
-    './manifest.json',
-    './logos/gameicon.jpg',
-    './maladumcards.json',
-    // Add paths to other assets
-    // Example:
-    // './cardimages/back.jpg',
-    // './logos/logo1.jpg',
+    '/',
+    '/index.html',
+    '/scripts/main.js',
+    '/scripts/helpers.js',
+    '/scripts/configManager.js',
+    '/scripts/dataLoader.js',
+    '/scripts/deckManager.js',
+    '/scripts/eventHandlers.js',
+    '/scripts/uiGenerator.js',
+    '/scripts/serviceWorkerRegistration.js',
+    '/data/maladumcards.json',
+    '/data/difficulties.json',
+    // Add other assets like CSS, images, etc.
 ];
 
-self.addEventListener('install', (event) => {
-    console.log('[Service Worker] Install Event');
+// Install event - caching assets
+self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then((cache) => {
-                console.log('[Service Worker] Caching all assets');
+            .then(cache => {
+                console.log('Opened cache');
                 return cache.addAll(urlsToCache);
             })
-            .then(() => self.skipWaiting()) // Force the waiting service worker to become the active service worker
-            .catch((error) => {
-                console.error('[Service Worker] Failed to cache assets', error);
+            .catch(error => {
+                console.error('Failed to cache during install:', error);
             })
     );
 });
 
-self.addEventListener('activate', (event) => {
-    console.log('[Service Worker] Activate Event');
-    event.waitUntil(
-        caches.keys()
-            .then((cacheNames) => {
-                return Promise.all(
-                    cacheNames.map((cache) => {
-                        if (cache !== CACHE_NAME) {
-                            console.log(`[Service Worker] Deleting old cache: ${cache}`);
-                            return caches.delete(cache);
-                        }
-                    })
-                );
-            })
-            .then(() => self.clients.claim()) // Take control of all clients as soon as the service worker activates
-            .catch((error) => {
-                console.error('[Service Worker] Failed to delete old caches', error);
-            })
-    );
-});
+// Fetch event - serving cached assets
+self.addEventListener('fetch', event => {
+    // Only handle GET requests
+    if (event.request.method !== 'GET') return;
 
-self.addEventListener('fetch', (event) => {
     event.respondWith(
         caches.match(event.request)
-            .then((response) => {
-                // Cache hit - return response
+            .then(response => {
+                // Cache hit - return the response
                 if (response) {
                     return response;
                 }
                 // Clone the request as it's a stream and can only be consumed once
                 const fetchRequest = event.request.clone();
+
                 return fetch(fetchRequest).then(
-                    (networkResponse) => {
-                        // Check if we received a valid response
+                    networkResponse => {
+                        // Check for a valid response
                         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
                             return networkResponse;
                         }
+
                         // Clone the response as it's a stream and can only be consumed once
                         const responseToCache = networkResponse.clone();
+
                         caches.open(CACHE_NAME)
-                            .then((cache) => {
+                            .then(cache => {
                                 cache.put(event.request, responseToCache);
+                            })
+                            .catch(error => {
+                                console.error('Failed to cache the fetched resource:', error);
                             });
+
                         return networkResponse;
                     }
-                ).catch((error) => {
-                    console.error('[Service Worker] Fetch failed:', error);
-                    // Optionally, return a fallback page or image here
+                ).catch(error => {
+                    console.error('Fetch failed:', error);
+                    // Optionally, return a fallback page or resource
                 });
             })
+    );
+});
+
+// Activate event - cleaning up old caches
+self.addEventListener('activate', event => {
+    const cacheWhitelist = [CACHE_NAME];
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    if (!cacheWhitelist.includes(cacheName)) {
+                        console.log('Deleting old cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
     );
 });

@@ -1,9 +1,12 @@
 // scripts/eventHandlers.js
 
 import { saveConfiguration } from './configManager.js';
-import { showToast } from './helpers.js';
-import { markCardAsInPlay, clearInPlayCards } from './deckManager.js';
+import { showToast, shuffleDeck } from './helpers.js';
 
+/**
+ * Sets up event listeners for various UI elements.
+ * @param {DeckManager} deckManager - The instance of DeckManager.
+ */
 export function setupEventListeners(deckManager) {
     // Event listener for game selection changes
     const gameCheckboxes = document.getElementById('gameCheckboxes');
@@ -17,8 +20,13 @@ export function setupEventListeners(deckManager) {
 
                 // Regenerate card types and save configuration
                 deckManager.groupCardsByType();
-                deckManager.generateDeck(); // Pass necessary parameters
-                saveConfiguration();
+                const cardCounts = getCurrentCardCounts();
+                const specialCardCounts = getCurrentSpecialCardCounts();
+                const sentryCardCounts = getCurrentSentryCardCounts();
+                const isSentryEnabled = document.getElementById('enableSentryRules')?.checked || false;
+                const isCorrupterEnabled = document.getElementById('enableCorrupterRules')?.checked || false;
+                deckManager.generateDeck(cardCounts, specialCardCounts, sentryCardCounts, isSentryEnabled, isCorrupterEnabled);
+                deckManager.saveCurrentConfiguration();
             }
         });
     }
@@ -27,10 +35,19 @@ export function setupEventListeners(deckManager) {
     const difficultyLevel = document.getElementById('difficultyLevel');
     if (difficultyLevel) {
         difficultyLevel.addEventListener('change', () => {
-            // Update difficulty details
-            // This should be handled by uiGenerator
-            // Here, we just regenerate the deck
-            deckManager.generateDeck(); // Pass necessary parameters
+            // Update difficulty details based on selection
+            const selectedIndex = parseInt(difficultyLevel.value) || 0;
+            deckManager.savedDifficultyIndex = selectedIndex;
+
+            // Regenerate the deck with the new difficulty settings
+            const cardCounts = getCurrentCardCounts();
+            const specialCardCounts = getCurrentSpecialCardCounts();
+            const sentryCardCounts = getCurrentSentryCardCounts();
+            const isSentryEnabled = document.getElementById('enableSentryRules')?.checked || false;
+            const isCorrupterEnabled = document.getElementById('enableCorrupterRules')?.checked || false;
+            deckManager.generateDeck(cardCounts, specialCardCounts, sentryCardCounts, isSentryEnabled, isCorrupterEnabled);
+            deckManager.saveCurrentConfiguration();
+
             showToast('Difficulty level changed. Deck regenerated.');
         });
     }
@@ -39,7 +56,14 @@ export function setupEventListeners(deckManager) {
     const sentryRulesCheckbox = document.getElementById('enableSentryRules');
     if (sentryRulesCheckbox) {
         sentryRulesCheckbox.addEventListener('change', () => {
-            deckManager.generateDeck(); // Pass necessary parameters
+            const isSentryEnabled = sentryRulesCheckbox.checked;
+            const cardCounts = getCurrentCardCounts();
+            const specialCardCounts = getCurrentSpecialCardCounts();
+            const sentryCardCounts = getCurrentSentryCardCounts();
+            const isCorrupterEnabled = document.getElementById('enableCorrupterRules')?.checked || false;
+            deckManager.generateDeck(cardCounts, specialCardCounts, sentryCardCounts, isSentryEnabled, isCorrupterEnabled);
+            deckManager.saveCurrentConfiguration();
+
             showToast('Sentry Rules toggled. Deck regenerated.');
         });
     }
@@ -48,7 +72,14 @@ export function setupEventListeners(deckManager) {
     const corrupterRulesCheckbox = document.getElementById('enableCorrupterRules');
     if (corrupterRulesCheckbox) {
         corrupterRulesCheckbox.addEventListener('change', () => {
-            deckManager.generateDeck(); // Pass necessary parameters
+            const isCorrupterEnabled = corrupterRulesCheckbox.checked;
+            const cardCounts = getCurrentCardCounts();
+            const specialCardCounts = getCurrentSpecialCardCounts();
+            const sentryCardCounts = getCurrentSentryCardCounts();
+            const isSentryEnabled = document.getElementById('enableSentryRules')?.checked || false;
+            deckManager.generateDeck(cardCounts, specialCardCounts, sentryCardCounts, isSentryEnabled, isCorrupterEnabled);
+            deckManager.saveCurrentConfiguration();
+
             showToast('Corrupter Rules toggled. Deck regenerated.');
         });
     }
@@ -57,7 +88,12 @@ export function setupEventListeners(deckManager) {
     const generateDeckButton = document.getElementById('generateDeck');
     if (generateDeckButton) {
         generateDeckButton.addEventListener('click', () => {
-            deckManager.generateDeck(); // Pass necessary parameters
+            const cardCounts = getCurrentCardCounts();
+            const specialCardCounts = getCurrentSpecialCardCounts();
+            const sentryCardCounts = getCurrentSentryCardCounts();
+            const isSentryEnabled = document.getElementById('enableSentryRules')?.checked || false;
+            const isCorrupterEnabled = document.getElementById('enableCorrupterRules')?.checked || false;
+            deckManager.generateDeck(cardCounts, specialCardCounts, sentryCardCounts, isSentryEnabled, isCorrupterEnabled);
         });
     }
 
@@ -109,8 +145,7 @@ export function setupEventListeners(deckManager) {
     const clearInPlayCardsButton = document.getElementById('clearInPlayCards');
     if (clearInPlayCardsButton) {
         clearInPlayCardsButton.addEventListener('click', () => {
-            clearInPlayCards();
-            showToast('All in-play cards have been cleared.');
+            deckManager.clearInPlayCards();
         });
     }
 
@@ -149,9 +184,72 @@ export function setupEventListeners(deckManager) {
             }
         });
     }
+
+    // Event listener for card type input changes using event delegation
+    const cardTypeInputsContainer = document.getElementById('cardTypeInputs');
+    if (cardTypeInputsContainer) {
+        cardTypeInputsContainer.addEventListener('input', (event) => {
+            if (event.target && event.target.matches('.input-count')) {
+                const type = event.target.id.replace('type-', '');
+                const count = parseInt(event.target.value) || 0;
+                // Optionally, you can implement methods in DeckManager to update counts dynamically
+                // For simplicity, we'll regenerate the deck with updated counts
+                const cardCounts = getCurrentCardCounts();
+                const specialCardCounts = getCurrentSpecialCardCounts();
+                const sentryCardCounts = getCurrentSentryCardCounts();
+                const isSentryEnabled = document.getElementById('enableSentryRules')?.checked || false;
+                const isCorrupterEnabled = document.getElementById('enableCorrupterRules')?.checked || false;
+                deckManager.generateDeck(cardCounts, specialCardCounts, sentryCardCounts, isSentryEnabled, isCorrupterEnabled);
+            }
+        });
+    }
 }
 
-export function updateInPlayCardsDisplay() {
-    // This function can be implemented to update the UI for in-play cards
-    // It can be similar to what was in deckManager.js
+/**
+ * Retrieves current card counts from the UI.
+ * @returns {Object} - Card counts by type.
+ */
+function getCurrentCardCounts() {
+    const counts = {};
+    const inputs = document.querySelectorAll('.input-count');
+    inputs.forEach(input => {
+        const type = input.id.replace('type-', '');
+        const value = parseInt(input.value) || 0;
+        counts[type] = value;
+    });
+    return counts;
+}
+
+/**
+ * Retrieves current special card counts (Corrupters) from the UI.
+ * @returns {Object} - Special card counts by type.
+ */
+function getCurrentSpecialCardCounts() {
+    const counts = {};
+    const inputs = document.querySelectorAll('.input-count');
+    inputs.forEach(input => {
+        const type = input.id.replace('type-', '');
+        if (['Corrupter'].includes(type)) { // Adjust as per your actual special types
+            const value = parseInt(input.value) || 0;
+            counts[type] = value;
+        }
+    });
+    return counts;
+}
+
+/**
+ * Retrieves current sentry card counts from the UI.
+ * @returns {Object} - Sentry card counts by type.
+ */
+function getCurrentSentryCardCounts() {
+    const counts = {};
+    const inputs = document.querySelectorAll('.input-count');
+    inputs.forEach(input => {
+        const type = input.id.replace('type-', '');
+        if (['Sentry'].includes(type)) { // Adjust as per your actual sentry types
+            const value = parseInt(input.value) || 0;
+            counts[type] = value;
+        }
+    });
+    return counts;
 }

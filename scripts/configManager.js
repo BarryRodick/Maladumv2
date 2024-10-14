@@ -30,6 +30,16 @@ export function loadConfiguration() {
 }
 
 /**
+ * Initializes the configuration with default values if not present.
+ * @param {Object} defaultConfig - The default configuration to initialize.
+ */
+export function initializeConfiguration(defaultConfig) {
+    if (!loadConfiguration()) {
+        saveConfiguration(defaultConfig);
+    }
+}
+
+/**
  * Retrieves the saved card count for a specific type from the configuration.
  * @param {string} type - The card type.
  * @returns {number} - The saved count or 0 if not found.

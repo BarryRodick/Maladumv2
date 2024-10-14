@@ -1,6 +1,37 @@
 // scripts/uiGenerator.js
 
 import { getSavedCardCount, getSavedSpecialCardCount, getSavedSentryCardCount } from './configManager.js';
+import { showToast } from './helpers.js';
+
+/**
+ * Creates a Bootstrap form-check element.
+ * @param {string} type - The type of the card.
+ * @param {boolean} isSentry - Whether the card type is a Sentry.
+ * @param {boolean} isCorrupter - Whether the card type is a Corrupter.
+ * @param {boolean} isChecked - Whether the checkbox is checked.
+ * @returns {HTMLElement} - The form-check div element.
+ */
+function createFormCheck(type, isSentry, isCorrupter, isChecked) {
+    const div = document.createElement('div');
+    div.classList.add('form-check');
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = `game-${type}`;
+    checkbox.value = type;
+    checkbox.checked = isChecked;
+    checkbox.classList.add('form-check-input');
+
+    const label = document.createElement('label');
+    label.htmlFor = `game-${type}`;
+    label.classList.add('form-check-label');
+    label.textContent = type;
+
+    div.appendChild(checkbox);
+    div.appendChild(label);
+
+    return div;
+}
 
 /**
  * Generates the game selection checkboxes.
@@ -16,29 +47,21 @@ export function generateGameSelection(games, selectedGames) {
 
     container.innerHTML = ''; // Clear existing content
 
+    const fragment = document.createDocumentFragment();
+
     games.forEach(game => {
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = `game-${game}`;
-        checkbox.value = game;
-        checkbox.checked = selectedGames.includes(game);
-
-        const label = document.createElement('label');
-        label.htmlFor = `game-${game}`;
-        label.textContent = game;
-
-        const div = document.createElement('div');
-        div.classList.add('form-check');
-
-        div.appendChild(checkbox);
-        div.appendChild(label);
-
-        container.appendChild(div);
+        const isChecked = selectedGames.includes(game);
+        const formCheck = createFormCheck(game, false, false, isChecked);
+        fragment.appendChild(formCheck);
     });
+
+    container.appendChild(fragment);
 }
 
 /**
  * Generates input fields for card types and their counts.
+ * Differentiates between regular, Sentry, and Corrupter card types.
+ *
  * @param {Array} cardTypes - List of all card types.
  * @param {Object} deckDataByType - Deck data grouped by card type.
  * @param {Object} cardCounts - Current counts for each card type.
@@ -54,6 +77,8 @@ export function generateCardTypeInputs(cardTypes, deckDataByType, cardCounts, se
 
     container.innerHTML = ''; // Clear existing content
 
+    const fragment = document.createDocumentFragment();
+
     cardTypes.forEach(type => {
         const isSentry = sentryCardTypes.includes(type);
         const isCorrupter = corrupterCardTypes.includes(type);
@@ -64,13 +89,23 @@ export function generateCardTypeInputs(cardTypes, deckDataByType, cardCounts, se
             ? getSavedSpecialCardCount(type)
             : getSavedCardCount(type);
 
-        const div = document.createElement('div');
-        div.classList.add('card-type-input', 'd-flex', 'align-items-center', 'justify-content-between');
+        // Create row for input
+        const row = document.createElement('div');
+        row.classList.add('row', 'mb-3');
+
+        // Create label column
+        const labelCol = document.createElement('div');
+        labelCol.classList.add('col-sm-4');
 
         const label = document.createElement('label');
         label.htmlFor = `type-${type}`;
-        label.classList.add('card-title');
-        label.textContent = type;
+        label.classList.add('form-label');
+        label.textContent = `${type}${isSentry ? ' (Sentry)' : isCorrupter ? ' (Corrupter)' : ''}`;
+        labelCol.appendChild(label);
+
+        // Create input column
+        const inputCol = document.createElement('div');
+        inputCol.classList.add('col-sm-8');
 
         const input = document.createElement('input');
         input.type = 'number';
@@ -78,12 +113,32 @@ export function generateCardTypeInputs(cardTypes, deckDataByType, cardCounts, se
         input.classList.add('form-control', 'input-count');
         input.value = cardCount;
         input.min = '0';
+        input.max = deckDataByType[type].length;
+        input.setAttribute('aria-label', `Number of ${type} cards`);
 
-        div.appendChild(label);
-        div.appendChild(input);
+        // Add event listener for real-time validation
+        input.addEventListener('input', (e) => {
+            const max = deckDataByType[type].length;
+            let value = parseInt(e.target.value) || 0;
+            if (value > max) {
+                showToast(`Maximum available ${type} cards: ${max}`);
+                e.target.value = max;
+                value = max;
+            } else if (value < 0) {
+                e.target.value = 0;
+                value = 0;
+            }
+            // Optionally, update the DeckManager or configuration here
+            // deckManager.updateCardCount(type, value);
+        });
 
-        container.appendChild(div);
+        inputCol.appendChild(input);
+        row.appendChild(labelCol);
+        row.appendChild(inputCol);
+        fragment.appendChild(row);
     });
+
+    container.appendChild(fragment);
 }
 
 /**
@@ -100,13 +155,19 @@ export function populateDifficultySelection(difficulties, selectedIndex) {
 
     select.innerHTML = ''; // Clear existing options
 
+    const fragment = document.createDocumentFragment();
+
+    const validIndex = (selectedIndex >= 0 && selectedIndex < difficulties.length) ? selectedIndex : 0;
+
     difficulties.forEach((difficulty, index) => {
         const option = document.createElement('option');
         option.value = index;
         option.textContent = difficulty.name;
-        if (index === selectedIndex) {
+        if (index === validIndex) {
             option.selected = true;
         }
-        select.appendChild(option);
+        fragment.appendChild(option);
     });
+
+    select.appendChild(fragment);
 }

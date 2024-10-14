@@ -7,6 +7,7 @@
  * @returns {string[]} - An array of unique types.
  */
 export function parseCardTypes(typeString) {
+    if (!typeString) return [];
     let andTypes = typeString.split('+').map(s => s.trim());
     let types = [];
     andTypes.forEach(part => {
@@ -57,14 +58,17 @@ export function showToast(message) {
         return;
     }
 
+    const toastId = `toast-${Date.now()}`;
     const toast = document.createElement('div');
-    toast.classList.add('toast', 'show', 'align-items-center', 'text-white', 'bg-secondary', 'border-0');
+    toast.classList.add('toast', 'fade', 'show', 'align-items-center', 'text-white', 'bg-secondary', 'border-0');
     toast.setAttribute('role', 'alert');
     toast.setAttribute('aria-live', 'assertive');
     toast.setAttribute('aria-atomic', 'true');
+    toast.id = toastId;
 
     const toastBody = document.createElement('div');
     toastBody.classList.add('d-flex');
+
     const toastMessage = document.createElement('div');
     toastMessage.classList.add('toast-body');
     toastMessage.textContent = message;
@@ -72,20 +76,20 @@ export function showToast(message) {
 
     const closeButton = document.createElement('button');
     closeButton.type = 'button';
-    closeButton.classList.add('ml-auto', 'mb-1', 'close');
-    closeButton.setAttribute('data-dismiss', 'toast');
+    closeButton.classList.add('btn-close', 'me-2', 'm-auto');
+    closeButton.setAttribute('data-bs-dismiss', 'toast');
     closeButton.setAttribute('aria-label', 'Close');
-    closeButton.innerHTML = '<span aria-hidden="true">&times;</span>';
     toastBody.appendChild(closeButton);
 
     toast.appendChild(toastBody);
     toastContainer.appendChild(toast);
 
-    // Automatically remove the toast after 3 seconds
-    setTimeout(() => {
-        $(toast).toast('hide');
-        toast.addEventListener('hidden.bs.toast', () => {
-            toast.remove();
-        });
-    }, 3000);
+    // Initialize Bootstrap toast
+    const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+    bsToast.show();
+
+    // Remove toast from DOM after it hides
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
 }
