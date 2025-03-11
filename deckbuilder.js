@@ -1857,3 +1857,67 @@ function createCardTypeContainers() {
         }
     });
 }
+
+// Add this function after the existing initialization functions
+async function loadGameData() {
+    try {
+        // Load both JSON files
+        const [cardsResponse, difficultiesResponse] = await Promise.all([
+            fetch('data/maladumcards.json'),
+            fetch('data/difficulties.json')
+        ]);
+
+        const cardsData = await cardsResponse.json();
+        const difficultiesData = await difficultiesResponse.json();
+
+        // Store the data in our dataStore
+        dataStore = {
+            games: {},
+            sentryTypes: cardsData.sentryTypes || [],
+            corrupterTypes: cardsData.corrupterTypes || [],
+            heldBackCardTypes: cardsData.heldBackCardTypes || []
+        };
+
+        // Process games data
+        if (cardsData.games) {
+            Object.entries(cardsData.games).forEach(([gameName, cards]) => {
+                dataStore.games[gameName] = {
+                    name: gameName,
+                    cards: cards,
+                    cardTypes: new Set(cards.map(card => card.type)),
+                    specialCardTypes: new Set(cards.filter(card => 
+                        card.type === "Novice" || 
+                        card.type === "Commander" || 
+                        card.type === "Veteran"
+                    ).map(card => card.type))
+                };
+            });
+        }
+
+        // Store difficulties
+        difficultySettings = difficultiesData.difficulties || [];
+
+        // Initialize UI with loaded data
+        initializeGameCheckboxes();
+        initializeDifficultySelector();
+        updateCardTypeSelectors();
+
+        state.dataLoaded = true;
+        console.log('Game data loaded successfully');
+    } catch (error) {
+        console.error('Error loading game data:', error);
+        showErrorMessage('Failed to load game data. Please refresh the page.');
+    }
+}
+
+// Modify the DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize UI elements
+    initializeUI();
+    
+    // Load game data
+    loadGameData().catch(error => {
+        console.error('Failed to load game data:', error);
+        showErrorMessage('Failed to load game data. Please refresh the page.');
+    });
+});
