@@ -1,95 +1,669 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) - Modified for extension context -->
+    <script>
+      // Initialize dataLayer
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      
+      // Only load Google Analytics in non-extension context
+      try {
+        // Check if we're in a browser extension context
+        const isExtensionContext = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
+        
+        if (!isExtensionContext) {
+          // We're in a regular web context, load Google Analytics
+          const gaScript = document.createElement('script');
+          gaScript.async = true;
+          gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-ZMTSM9B7Q7';
+          gaScript.onerror = function() {
+            console.warn('Failed to load Google Analytics script');
+          };
+          document.head.appendChild(gaScript);
+          
+          gtag('config', 'G-ZMTSM9B7Q7');
+        } else {
+          // We're in an extension context, skip Google Analytics
+          console.log('Skipping Google Analytics in extension context');
+        }
+      } catch (error) {
+        // Silently handle any errors to prevent breaking the app
+        console.warn('Error initializing analytics:', error.message);
+      }
+    </script>
+    
+    <!-- Head content -->
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Deck Builder</title>
-    <link rel="stylesheet" href="styles/styles.css">
-    <!-- Include Bootstrap CSS for styling and components -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
+    <!-- Include Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Include Font Awesome CSS for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
+    
+    <!-- Include custom styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Link to the manifest file for PWA -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Theme color for PWA -->
+    <meta name="theme-color" content="#121212">
+    
+    <!-- Add these meta tags in the head section after the existing meta tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Deck Builder">
+    
+    <!-- Add iOS icons -->
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167x167.png">
+    
+    <!-- Add additional style for collapsible sections -->
+    <style>
+        /* Style for the FAQ icon */
+        .faq-icon {
+            font-size: 1.5rem;
+            color: #ffffff;
+            text-decoration: none;
+            margin-left: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .faq-icon:hover {
+            color: #cccccc;
+            text-decoration: none;
+        }
+
+        /* Updated Progress bar styling */
+        .progress {
+            background-color: #2d2d2d;
+            height: 2rem;
+            position: relative; /* Added for absolute positioning of text */
+        }
+
+        .progress-bar {
+            background-color: #007bff; /* Bootstrap primary color for better contrast */
+            color: white;
+            font-size: 1rem;
+            line-height: 2rem;
+            transition: width .3s ease;
+        }
+
+        /* New style for progress text */
+        .progress-text {
+            position: absolute;
+            width: 100%;
+            left: 0;
+            right: 0;
+            text-align: center;
+            line-height: 2rem;
+            color: white;
+            font-size: 1rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); /* Text shadow for better readability */
+            z-index: 1; /* Ensure text is always on top */
+        }
+
+        /* Card action section styling */
+        #actionTopNInput {
+            margin-top: 1rem;
+        }
+
+        /* Collapsible section styling */
+        .section-header {
+            background-color: #2d2d2d;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .section-header .btn-link {
+            color: white;
+            text-decoration: none;
+            width: 100%;
+            text-align: left;
+            padding: 0;
+        }
+
+        .section-header .btn-link:hover {
+            color: #cccccc;
+        }
+
+        /* Active deck section styling */
+        #activeDeckSection {
+            margin-top: 2rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 576px) {
+            .faq-icon {
+                font-size: 1.2rem;
+                margin-left: 10px;
+            }
+            
+            .progress-text {
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Add spacing between header icons */
+        .faq-icon + .faq-icon {
+            margin-left: 15px;
+        }
+
+        /* Optional: Add hover effect for the campaign icon */
+        .faq-icon:hover .fa-scroll {
+            transform: scale(1.1);
+            transition: transform 0.2s ease;
+        }
+
+        /* Campaign Modal Styling */
+        .campaign-item {
+            background-color: #2d2d2d;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .campaign-item:hover {
+            background-color: #3d3d3d;
+            text-decoration: none;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .campaign-item h4 {
+            margin-bottom: 0.5rem;
+        }
+
+        .campaign-item small {
+            display: block;
+        }
+
+        /* Modal Close Button */
+        .modal .close {
+            opacity: 0.8;
+        }
+
+        .modal .close:hover {
+            opacity: 1;
+        }
+
+        /* Modal Background */
+        .modal-content {
+            border: 1px solid #444;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #444;
+        }
+
+        /* Campaign Icon */
+        .fa-scroll {
+            transition: transform 0.2s ease;
+        }
+
+        .faq-icon:hover .fa-scroll {
+            transform: scale(1.1);
+        }
+
+        /* Improved mobile styling */
+        @media (max-width: 576px) {
+            .container {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+
+            /* Adjust header for mobile */
+            .app-header {
+                padding: 0.5rem !important;
+            }
+
+            .app-logo-text {
+                font-size: 1.5rem;
+            }
+
+            /* Make buttons more touch-friendly */
+            .btn {
+                padding: 12px 20px;
+                margin: 5px 0;
+            }
+
+            /* Adjust navigation buttons for mobile */
+            #navigationButtons .btn {
+                padding: 15px;
+                margin: 5px;
+                min-width: 100px;
+            }
+
+            /* Stack navigation buttons on very small screens */
+            @media (max-width: 400px) {
+                #navigationButtons {
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                #navigationButtons .btn {
+                    width: 100%;
+                    margin: 5px 0;
+                }
+            }
+
+            /* Adjust modal for mobile */
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+
+            /* Improve touch targets */
+            .section-header .btn-link {
+                padding: 15px 0;
+            }
+
+            /* Adjust Buy Me Coffee button for mobile */
+            .bmc-button-container {
+                transform: scale(0.8);
+                transform-origin: right center;
+            }
+        }
+
+        /* Add overscroll behavior to prevent bounce effect */
+        html {
+            overscroll-behavior: none;
+        }
+
+        /* Add touch-action manipulation for better touch handling */
+        body {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Buy Me a Coffee button styles */
+        .bmc-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 36px;
+            padding: 0 12px;
+            background-color: #000000;
+            color: #ffffff;
+            border-radius: 5px;
+            font-family: 'Cookie', cursive;
+            font-size: 18px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .bmc-button:hover {
+            background-color: #333333;
+            color: #ffffff;
+            text-decoration: none;
+        }
+        
+        .bmc-button .emoji {
+            margin-right: 5px;
+            font-size: 20px;
+        }
+    </style>
+
+    <!-- Add this in the head section -->
+    <link rel="icon" type="image/x-icon" href="logos/gameicon.jpg">
+
+    <!-- Add font imports in head -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Load Cookie font for Buy Me a Coffee button -->
+    <link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet">
 </head>
+
 <body class="dark-mode">
-    <!-- App Header -->
-    <header class="app-header">
-        <h1 class="app-logo-text">Deck Builder</h1>
-        <div id="headerButtons">
-            <!-- Example Buttons -->
-            <a href="about.html" class="btn btn-primary">About</a>
-            <a href="#" class="btn btn-secondary">Help</a>
-            <a href="#" class="btn btn-info faq-icon" title="FAQ">&#10067;</a> <!-- Unicode for question mark -->
+
+    <!-- Header Section -->
+    <header class="app-header dark-green-bar d-flex align-items-center justify-content-between p-3">
+        <div class="d-flex align-items-center">
+            <img src="logos/gameicon.jpg" alt="Maladum" class="mr-3" style="height: 40px; width: auto;">
+            <h1 class="app-logo-text mb-0">Maladum Event Cards</h1>
+        </div>
+        
+        <div id="headerButtons" class="d-flex align-items-center">
+            <!-- Add Campaign Manager Icon -->
+            <a href="#" class="faq-icon" title="Campaign Manager" data-toggle="modal" data-target="#campaignModal">
+                <i class="fas fa-scroll"></i>
+            </a>
+            
+            <!-- FAQ Icon -->
+            <a href="about.html" class="faq-icon" title="About / FAQ">
+                <i class="fas fa-question-circle"></i>
+            </a>
+
+            <!-- Buy Me a Coffee Button - Custom implementation -->
+            <div class="bmc-button-container ml-3">
+                <a href="https://www.buymeacoffee.com/barryrodics" target="_blank" class="bmc-button">
+                    <span class="emoji">🎲</span>
+                    <span>Buy me a coffee</span>
+                </a>
+            </div>
         </div>
     </header>
+    
+    <!-- Toast Container for Notifications -->
+    <div id="toastContainer" aria-live="polite" aria-atomic="true" class="toast-container position-fixed top-0 end-0 p-3"></div>
 
-    <!-- Main Content -->
-    <main class="container mt-4">
-        <!-- Game Selection -->
-        <section id="gameSelection" class="mb-4">
-            <h2>Select Games</h2>
-            <div id="gameCheckboxes" class="form-group">
-                <!-- Checkboxes will be dynamically generated here -->
-            </div>
-        </section>
+    <div class="container my-4">
+        <!-- Deck Builder Controls - Wrapping all builder controls in one div -->
+        <div id="deckBuilderControls">
+            <!-- Game Selection -->
+            <section id="gameSelection" class="mb-4">
+                <div class="section-header">
+                    <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#gameCheckboxes" aria-expanded="false" aria-controls="gameCheckboxes">
+                        <i class="fas fa-chevron-down mr-2"></i>Select Games
+                    </button>
+                </div>
+                <div id="gameCheckboxes" class="collapse">
+                    <!-- Game checkboxes will be populated here -->
+                </div>
+            </section>
 
-        <!-- Difficulty Selection -->
-        <section id="difficultySelection" class="mb-4">
-            <h2>Select Difficulty</h2>
-            <select id="difficultyLevel" class="form-control w-50">
-                <!-- Options will be dynamically generated here -->
-            </select>
-        </section>
+            <!-- Card Type Selection and Scenario Config -->
+            <section id="cardTypeSection" class="mb-4">
+                <div class="section-header">
+                    <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#cardTypeContent" aria-expanded="false" aria-controls="cardTypeContent">
+                        <i class="fas fa-chevron-down mr-2"></i>Configure Deck
+                    </button>
+                </div>
+                <div id="cardTypeContent" class="collapse">
+                    <!-- Scenario Config Section -->
+                    <section id="scenarioConfig" class="mb-3">
+                        <!-- Difficulty Selection -->
+                        <div class="form-group">
+                            <label for="difficultyLevel">Difficulty Level:</label>
+                            <select id="difficultyLevel" class="form-control">
+                                <!-- Options populated dynamically -->
+                            </select>
+                            <small id="difficultyDetails" class="form-text text-muted mt-2"></small>
+                        </div>
 
-        <!-- Card Type Inputs -->
-        <section id="cardTypeInputs" class="mb-4">
-            <h2>Set Card Counts</h2>
-            <!-- Card type inputs will be dynamically generated here -->
-        </section>
+                        <!-- Enable Sentry Rules Checkbox -->
+                        <div class="form-group form-check">
+                            <input type="checkbox" class="form-check-input" id="enableSentryRules">
+                            <label class="form-check-label" for="enableSentryRules">Enable Sentry Rules</label>
+                            <small class="form-text text-muted">Sentry cards will be introduced later in the game.</small>
+                        </div>
 
-        <!-- Scenario Config (if applicable) -->
-        <section id="scenarioConfig" class="mb-4">
-            <h2>Scenario Configuration</h2>
-            <!-- Scenario configuration inputs or information -->
-        </section>
+                        <!-- Enable Corrupter Rules Checkbox -->
+                        <div class="form-group form-check">
+                            <input type="checkbox" class="form-check-input" id="enableCorrupterRules">
+                            <label class="form-check-label" for="enableCorrupterRules">Enable Corrupter Rules</label>
+                            <small class="form-text text-muted">Corrupter cards will replace 5 random cards.</small>
+                        </div>
+                    </section>
 
-        <!-- Deck Output -->
-        <section id="deckOutputSection" class="mb-4">
-            <h2>Deck</h2>
-            <div class="progress">
-                <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                    Card 0 of 0
+                    <!-- Card Type Selection -->
+                    <div id="cardTypeInputs" class="row">
+                        <!-- Card type inputs populated dynamically -->
+                        <div class="input-group">
+                            <label for="cardType1">Card Type 1:</label>
+                            <button class="btn btn-secondary btn-minus">-</button>
+                            <input type="number" id="cardType1" class="form-control" value="0" min="0">
+                            <button class="btn btn-secondary btn-plus">+</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Generate Deck Button -->
+            <button id="generateDeck" class="btn btn-primary btn-lg btn-block mb-4">Generate Deck</button>
+        </div>
+
+        <!-- Simplified Active Deck Section - No header, just content -->
+        <div id="activeDeckSection" style="display: none;">
+            <!-- Deck Output -->
+            <section id="deckOutput" class="mb-4 text-center">
+                <!-- Add clear button for active card -->
+                <button id="clearActiveCard" class="btn btn-danger btn-sm position-absolute" style="top: 5px; right: 5px; display: none;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </section>
+
+            <!-- Progress Bar -->
+            <div id="deckProgress" class="mb-4" style="display: none;">
+                <div class="progress">
+                    <div id="progressBar" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div id="progressText" class="progress-text"></div>
                 </div>
             </div>
-            <div id="deckOutput">
-                <!-- Current card will be displayed here -->
+
+            <!-- Navigation Buttons -->
+            <div id="navigationButtons" class="mb-4 text-center" style="display: none;">
+                <button id="prevCard" class="btn btn-secondary btn-lg mr-3">
+                    <i class="fas fa-chevron-left mr-2"></i>Previous
+                </button>
+                <button id="markInPlay" class="btn btn-warning btn-lg mr-3">
+                    <i class="fas fa-play-circle mr-2"></i>Mark In Play
+                </button>
+                <button id="nextCard" class="btn btn-secondary btn-lg">
+                    Next<i class="fas fa-chevron-right ml-2"></i>
+                </button>
             </div>
-            <div id="navigationButtons" class="mt-3">
-                <button id="prevCardButton" class="btn btn-outline-light mr-2">Previous</button>
-                <button id="nextCardButton" class="btn btn-outline-light">Next</button>
+
+            <!-- Card Action Section -->
+            <section id="cardActionSection" class="mb-4" style="display: none;">
+                <div class="form-group">
+                    <label for="cardAction">Card Action:</label>
+                    <select id="cardAction" class="form-control form-control-lg">
+                        <option value="">Select an action...</option>
+                        <option value="shuffleAnywhere">Shuffle into remaining deck</option>
+                        <option value="shuffleTopN">Shuffle into next N cards</option>
+                        <option value="replaceSameType">Replace with same type</option>
+                        <option value="introduceSentry">Introduce Sentry cards</option>
+                    </select>
+
+                    <div id="actionTopNInput" class="mt-3" style="display: none;">
+                        <label for="actionN">Number of cards (N):</label>
+                        <input type="number" id="actionN" class="form-control form-control-lg" value="3" min="1">
+                    </div>
+
+                    <button id="applyCardAction" class="btn btn-success btn-lg btn-block mt-3">Apply Action</button>
+                </div>
+            </section>
+
+            <!-- In Play Cards Section -->
+            <section id="inPlaySection" class="mb-4">
+                <h3 class="mb-3">In Play Cards</h3>
+                <div id="inPlayCards" class="d-flex flex-wrap justify-content-center mb-3">
+                    <!-- In Play cards populated dynamically -->
+                </div>
+                <button id="clearInPlayCards" class="btn btn-danger btn-lg btn-block">Clear In-Play Cards</button>
+            </section>
+        </div>
+    </div>
+
+    <!-- Include Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Include Deck Builder JS -->
+    <script src="deckbuilder.js"></script>
+
+    <script>
+        // Function to check if storage is available
+        function isStorageAvailable() {
+            try {
+                const storage = window.localStorage;
+                const x = '__storage_test__';
+                storage.setItem(x, x);
+                storage.removeItem(x);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // Function to show navigation buttons and card actions
+        function showGameControls(show = true) {
+            const elements = {
+                navigationButtons: document.getElementById('navigationButtons'),
+                cardActionSection: document.getElementById('cardActionSection'),
+                deckProgress: document.getElementById('deckProgress'),
+                activeDeckSection: document.getElementById('activeDeckSection'),
+                deckBuilderControls: document.getElementById('deckBuilderControls')
+            };
+
+            // Show/hide game elements
+            Object.entries(elements).forEach(([key, element]) => {
+                if (!element) {
+                    console.warn(`Element ${key} not found in DOM`);
+                    return;
+                }
+                
+                if (key === 'deckBuilderControls') {
+                    element.style.display = show ? 'none' : 'block';
+                } else {
+                    element.style.display = show ? 'block' : 'none';
+                }
+            });
+        }
+
+        // Function to restore deck state
+        function restoreDeckState() {
+            if (!isStorageAvailable()) {
+                console.warn('Local storage is not available');
+                return false;
+            }
+
+            try {
+                const savedStateString = localStorage.getItem('deckbuilderState');
+                if (!savedStateString) {
+                    console.log('No saved deck state found');
+                    return false;
+                }
+
+                const savedState = JSON.parse(savedStateString);
+                
+                // Validate saved state structure
+                if (!savedState || !savedState.deck || !Array.isArray(savedState.deck.combined)) {
+                    console.warn('Invalid saved state structure');
+                    return false;
+                }
+
+                // Check if there are cards in the deck
+                if (savedState.deck.combined.length === 0) {
+                    console.log('Saved deck is empty');
+                    return false;
+                }
+
+                // Dispatch custom event for deckbuilder.js to handle state restoration
+                const stateRestoredEvent = new CustomEvent('deckStateRestored', {
+                    detail: savedState
+                });
+                document.dispatchEvent(stateRestoredEvent);
+
+                // Show game controls since we have an active deck
+                showGameControls(true);
+                
+                console.log('Deck state restored successfully');
+                return true;
+            } catch (error) {
+                console.error('Error restoring deck state:', error);
+                // Clear potentially corrupted state
+                localStorage.removeItem('deckbuilderState');
+                return false;
+            }
+        }
+
+        // Check for service worker support and register it
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    if (confirm('A new version is available. Reload to update?')) {
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.error('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+
+        // Check for version updates
+        function checkForUpdates() {
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'GET_VERSION'
+                });
+            }
+        }
+
+        // Listen for messages from service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data.type === 'VERSION_UPDATE') {
+                    if (confirm(`New version available (${event.data.version}). Reload to update?`)) {
+                        window.location.reload();
+                    }
+                }
+            });
+        }
+
+        // Initialize deck state on page load
+        window.addEventListener('load', function() {
+            // Check for updates
+            checkForUpdates();
+            
+            // Attempt to restore deck state
+            restoreDeckState();
+        });
+
+        // Listen for deck state changes
+        document.addEventListener('deckStateChanged', function(event) {
+            if (event.detail && event.detail.deck && event.detail.deck.combined) {
+                showGameControls(event.detail.deck.combined.length > 0);
+            }
+        });
+    </script>
+
+    <!-- Add Campaign Modal -->
+    <div class="modal fade" id="campaignModal" tabindex="-1" role="dialog" aria-labelledby="campaignModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="campaignModalLabel">Campaign Manager</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="campaign-list">
+                        <a href="dungeons_of_enveron.html" class="campaign-item d-block p-3 mb-2 rounded">
+                            <h4>Dungeons of Enveron</h4>
+                            <small class="text-muted">Track your progress through the dungeons</small>
+                        </a>
+                        <a href="forbidden_creed.html" class="campaign-item d-block p-3 mb-2 rounded">
+                            <h4>The Forbidden Creed</h4>
+                            <small class="text-muted">Follow the path of the forbidden ones</small>
+                        </a>
+                    </div>
+                </div>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <!-- In-Play Cards Section -->
-        <section id="inPlaySection" class="mb-4" style="display: none;">
-            <h2>In-Play Cards</h2>
-            <div id="inPlayCards">
-                <!-- In-play cards will be displayed here -->
-            </div>
-            <button id="clearInPlayCardsButton" class="btn btn-danger mt-3">Clear All In-Play Cards</button>
-        </section>
-
-        <!-- Deck Controls -->
-        <section id="deckControls" class="mb-4">
-            <button id="shuffleDeckButton" class="btn btn-warning">Shuffle Deck</button>
-            <!-- Add more controls as needed -->
-        </section>
-    </main>
-
-    <!-- Toast Container for Notifications -->
-    <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
-
-    <!-- Include jQuery and Bootstrap JS for Toasts and other components -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Main JavaScript Module -->
-    <script type="module" src="scripts/main.js"></script>
 </body>
 </html>

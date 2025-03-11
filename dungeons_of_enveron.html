@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dungeons of Enveron - Campaign Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        /* Styles specific to Dungeons of Enveron */
+        .delay-track {
+            margin: 15px 0;
+            display: flex;
+            gap: 5px;
+        }
+
+        .delay-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .delay-blue {
+            border-color: #4a90e2;
+        }
+
+        .delay-red {
+            border-color: #e24a4a;
+        }
+
+        /* Other page-specific styles... */
+
+        /* Add after existing styles */
+        .campaign-container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .campaign-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 20px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #333;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            display: inline-block;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+
+        .reward-item {
+            display: flex;
+            align-items: flex-start;
+            margin: 10px 0;
+            gap: 10px;
+        }
+
+        .reward-text {
+            flex: 1;
+        }
+
+        .notes-section {
+            margin: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .notes-header {
+            padding: 10px;
+            background: #f5f5f5;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .notes-content {
+            display: none;
+            padding: 10px;
+        }
+
+        .notes-content.visible {
+            display: block;
+        }
+
+        .notes-content textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+        }
+
+        .dark-green-bar {
+            background-color: #2c3e50;
+        }
+
+        .app-logo-text {
+            color: white;
+            font-size: 24px;
+        }
+
+        .faq-icon {
+            color: white;
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .collapse-icon {
+            transition: transform 0.3s;
+        }
+
+        .collapse-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        .input-field {
+            padding: 5px;
+            margin: 0 5px;
+            width: 60px;
+        }
+
+        .input-field.apprentice-name {
+            width: 150px;
+        }
+
+        .icon {
+            height: 20px;
+            vertical-align: middle;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        .malagaunt-track {
+            display: flex;
+            gap: 5px;
+            margin: 10px 0;
+        }
+
+        .malagaunt-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            cursor: pointer;
+        }
+
+        /* Buy Me a Coffee button styles */
+        .bmc-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 36px;
+            padding: 0 12px;
+            background-color: #000000;
+            color: #ffffff;
+            border-radius: 5px;
+            font-family: 'Cookie', cursive;
+            font-size: 18px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .bmc-button:hover {
+            background-color: #333333;
+            color: #ffffff;
+            text-decoration: none;
+        }
+        
+        .bmc-button .emoji {
+            margin-right: 5px;
+            font-size: 20px;
+        }
+    </style>
+    
+    <!-- Load Cookie font for Buy Me a Coffee button -->
+    <link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet">
+</head>
+<body>
+    <header class="app-header dark-green-bar d-flex align-items-center justify-content-between p-3">
+        <div class="d-flex align-items-center">
+            <a href="index.html" class="text-white text-decoration-none d-flex align-items-center">
+                <h1 class="app-logo-text mb-0">Event Cards</h1>
+                <i class="fas fa-scroll ml-2"></i>
+            </a>
+        </div>
+        
+        <div id="headerButtons" class="d-flex align-items-center">
+            <a href="about.html" class="faq-icon" title="About / FAQ">
+                <i class="fas fa-question-circle"></i>
+            </a>
+            
+            <!-- Buy Me a Coffee Button - Custom implementation -->
+            <div class="bmc-button-container ml-3">
+                <a href="https://www.buymeacoffee.com/barryrodics" target="_blank" class="bmc-button">
+                    <span class="emoji">🎲</span>
+                    <span>Buy me a coffee</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="notes-section">
+        <div class="notes-header" onclick="toggleNotes()">
+            Campaign Notes <span class="collapse-icon">▼</span>
+        </div>
+        <div class="notes-content" id="notesContent">
+            <textarea id="notesTextarea" placeholder="Add your campaign notes here..."></textarea>
+        </div>
+    </div>
+
+    <div class="campaign-container">
+        <div class="campaign-card">
+            <div class="title">Dungeons of Enveron</div>
+            <div class="subtitle">Campaign Log</div>
+            
+            <div class="section-title">Delay Track</div>
+            <div class="delay-track">
+                <div class="delay-checkbox delay-blue"></div>
+                <div class="delay-checkbox delay-blue"></div>
+                <div class="delay-checkbox delay-red"></div>
+                <div class="delay-checkbox delay-blue"></div>
+                <div class="delay-checkbox delay-blue"></div>
+                <div class="delay-checkbox delay-red"></div>
+                <div class="delay-checkbox delay-blue"></div>
+                <div class="delay-checkbox delay-red"></div>
+                <div class="delay-checkbox delay-blue"></div>
+                <div class="delay-checkbox delay-red"></div>
+                <div class="delay-checkbox delay-blue"></div>
+                <div class="delay-checkbox delay-red"></div>
+            </div>
+            <p>Increase starting Dread by this value. For each red space, roll Magic Die, count that many empty spaces and add green peg. When green peg replaced, draw additional Event card.</p>
+
+            <div class="section-title">Achievements</div>
+            <div class="achievements">
+                <div class="achievement-row">
+                    <span>Relics Retrieved: <input type="text" class="input-field"></span>
+                    <span>Occult Paraphernalia <div class="checkbox"></div></span>
+                </div>
+                <div class="achievement-row">
+                    <span>Favour Owed <div class="checkbox"></div></span>
+                    <span>Skeletal Trails <div class="checkbox"></div></span>
+                </div>
+                <div class="achievement-row">
+                    <span>Entry Points Mapped</span>
+                    <div class="entry-points-list">
+                        <div class="entry-point-item">
+                            <div class="checkbox"></div>
+                            <span class="entry-point-number">1</span>
+                        </div>
+                        <div class="entry-point-item">
+                            <div class="checkbox"></div>
+                            <span class="entry-point-number">2</span>
+                        </div>
+                        <div class="entry-point-item">
+                            <div class="checkbox"></div>
+                            <span class="entry-point-number">3</span>
+                        </div>
+                        <div class="entry-point-item">
+                            <div class="checkbox"></div>
+                            <span class="entry-point-number">4</span>
+                        </div>
+                        <div class="entry-point-item">
+                            <div class="checkbox"></div>
+                            <span class="entry-point-number">5</span>
+                        </div>
+                        <div class="entry-point-item">
+                            <div class="checkbox"></div>
+                            <span class="entry-point-number">6</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="achievement-row">
+                    <span>Grave Points Searched: <input type="text" class="input-field"></span>
+                    <span>Escaped Invaders: <input type="text" class="input-field"></span>
+                </div>
+                <div class="achievement-row">
+                    <span>Corpses Examined: <input type="text" class="input-field"></span>
+                    <span>Unwilling Apprentice <div class="checkbox"></div></span>
+                </div>
+                <div class="achievement-row">
+                    <span>Troll Defeated <div class="checkbox"></div></span>
+                    <span>Sanctified Rooms: <input type="text" class="input-field"></span>
+                </div>
+                <div class="achievement-row">
+                    <span>Thinning the Horde: <input type="text" class="input-field"></span>
+                </div>
+                
+                <div class="apprentice-section">
+                    <span>Apprentice:</span>
+                    <span>Freed <div class="checkbox"></div></span>
+                    <span>Defeated <div class="checkbox"></div></span>
+                    <input type="text" class="input-field apprentice-name" placeholder="Name">
+                </div>
+            </div>
+
+            <div class="section-title">Defeating the Malagaunt</div>
+            <div class="malagaunt-track">
+                <div class="malagaunt-checkbox"></div>
+                <div class="malagaunt-checkbox"></div>
+                <div class="malagaunt-checkbox"></div>
+                <div class="malagaunt-checkbox"></div>
+                <div class="malagaunt-checkbox"></div>
+                <div class="malagaunt-checkbox"></div>
+            </div>
+            <p>When the Malagaunt enters play, remove one <img src="logos/Revenant.jpg" class="icon" alt="Revenant"> card from the deck for each space marked, then reshuffle.</p>
+        </div>
+
+        <div class="campaign-card">
+            <div class="section-title">Rewards</div>
+            <div class="rewards">
+                <div class="reward-item">
+                    <div class="checkbox"></div>
+                    <div class="reward-text">
+                        <strong>Ongoing Research:</strong> In each Market Phase, mark the first unmarked Necrotic Knowledge Reward, if any.
+                    </div>
+                </div>
+                <div class="reward-item">
+                    <div class="checkbox"></div>
+                    <div class="reward-text">
+                        <strong>Dungeoneer's Wisdom:</strong> Reduce this total by 1 to discard a trap token or <img src="logos/Dungeon.jpg" class="icon" alt="Dungeon"> card with no effect.
+                    </div>
+                </div>
+                <div class="reward-item">
+                    <div class="checkbox"></div>
+                    <div class="reward-text">
+                        <strong>Soulshield:</strong> While item marked "X" is intact and in play, Adventurers gain 1 free Magic peg to resist applicable <img src="logos/Revenant.jpg" class="icon" alt="Revenant"> card effects. Item may be used as normal, and bearer gains <img src="logos/Terrifying.png" class="icon" alt="Terrifying">. Revenants are not immune to this.
+                    </div>
+                </div>
+                <div class="reward-item">
+                    <div class="checkbox"></div>
+                    <div class="reward-text">
+                        <strong>Offer of Aid:</strong> Spend 1 Renown to re-roll a Left for Dead roll. You may also draw three Denizen boards before a Rescue Mission. Spend Renown equal to one Denizen's Persuade value (min. 1) to have it join the party for that Rescue Mission only.
+                    </div>
+                </div>
+                <div class="reward-item">
+                    <div class="checkbox"></div>
+                    <div class="reward-text">
+                        <strong>Guild Contacts:</strong> After each game, draw 2 random Class boards. Any Campaign Phase Skills on these boards may be used at any level, spending Renown instead of Skill pegs.
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">Necrotic Knowledge Rewards</div>
+            <div class="rewards">
+                <div class="reward-item">
+                    <div class="checkbox-group">
+                        <div class="checkbox"></div>
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="reward-text">
+                        <strong>Tactical Insight:</strong> Add one <img src="logos/Novice.jpg" class="icon" alt="Novice"> card to the deck for each space marked.
+                    </div>
+                </div>
+                <div class="reward-item">
+                    <div class="checkbox"></div>
+                    <div class="reward-text">
+                        <strong>Graverobberry:</strong> When making a General Search while in contact with (but not on) a Grave Point, draw an extra token and choose one to discard (traps cannot be discarded).
+                    </div>
+                </div>
+                <div class="reward-item">
+                    <div class="checkbox"></div>
+                    <div class="reward-text">
+                        <strong>Poison Resistance:</strong> Adventurers may spend a Skill peg (reaction) following a Poison roll to ignore the effects.
+                    </div>
+                </div>
+                <div class="reward-item">
+                    <div class="checkbox-group">
+                        <div class="checkbox"></div>
+                        <div class="checkbox"></div>
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="reward-text">
+                        <strong>Target Weakness:</strong> Adventurers may spend a Skill peg (reaction) following an attack roll against a Revenant of rank up to the spaces marked to cause 1 damage.
+                    </div>
+                </div>
+                <div class="reward-item">
+                    <div class="checkbox"></div>
+                    <div class="reward-text">
+                        <strong>Telltale Signs:</strong> Adventurers may use the Tracking Skill at a level up to their rank.
+                    </div>
+                </div>
+                <div class="reward-item">
+                    <div class="checkbox"></div>
+                    <div class="reward-text">
+                        <strong>Combat Experience:</strong> Adventurers may re-roll one blank per roll when attacking Revenants.
+                    </div>
+                </div>
+                <div class="reward-item">
+                    <div class="checkbox"></div>
+                    <div class="reward-text">
+                        <strong>Hallowing Ritual:</strong> Adventurers may spend a Magic peg as an action to deactivate a Grave Point in their square – mark it with a Reminder counter.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.checkbox').forEach(checkbox => {
+            checkbox.addEventListener('click', function() {
+                if (this.style.backgroundColor === 'black') {
+                    this.style.backgroundColor = '';
+                } else {
+                    this.style.backgroundColor = 'black';
+                }
+                saveState();
+            });
+        });
+
+        document.querySelectorAll('.circle').forEach(circle => {
+            circle.addEventListener('click', function() {
+                if (!this.classList.contains('numbered-circle')) {
+                    if (this.classList.contains('blue-border')) {
+                        this.classList.remove('blue-border');
+                        this.classList.add('red-border');
+                    } else if (this.classList.contains('red-border')) {
+                        this.classList.remove('red-border');
+                        this.classList.add('empty');
+                    } else {
+                        this.classList.remove('empty');
+                        this.classList.add('blue-border');
+                    }
+                    saveState();
+                }
+            });
+        });
+
+        document.querySelectorAll('.numbered-circle').forEach(circle => {
+            circle.addEventListener('click', function() {
+                if (this.style.backgroundColor === 'black') {
+                    this.style.backgroundColor = '';
+                    this.style.color = 'black';
+                } else {
+                    this.style.backgroundColor = 'black';
+                    this.style.color = 'white';
+                }
+                saveState();
+            });
+        });
+
+        document.querySelectorAll('.input-field').forEach(input => {
+            input.addEventListener('input', saveState);
+        });
+
+        document.querySelectorAll('.delay-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('click', function() {
+                if (this.style.backgroundColor === 'black') {
+                    this.style.backgroundColor = '';
+                } else {
+                    this.style.backgroundColor = 'black';
+                }
+                saveState();
+            });
+        });
+
+        const notesContent = document.getElementById('notesContent');
+        const notesTextarea = document.getElementById('notesTextarea');
+        const collapseIcon = document.querySelector('.collapse-icon');
+
+        function toggleNotes() {
+            notesContent.classList.toggle('visible');
+            collapseIcon.classList.toggle('rotated');
+            saveState();
+        }
+
+        document.querySelectorAll('.malagaunt-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('click', function() {
+                if (this.style.backgroundColor === 'black') {
+                    this.style.backgroundColor = '';
+                } else {
+                    this.style.backgroundColor = 'black';
+                }
+                saveState();
+            });
+        });
+
+        // Consistent storage availability check
+        function isStorageAvailable() {
+            try {
+                const storage = window.localStorage;
+                const x = '__storage_test__';
+                storage.setItem(x, x);
+                storage.removeItem(x);
+                return true;
+            } catch (e) {
+                console.warn('Local storage is not available:', e);
+                return false;
+            }
+        }
+
+        function saveState() {
+            if (!isStorageAvailable()) {
+                console.warn('Local storage is not available');
+                return;
+            }
+            try {
+                const state = {
+                    malagauntTrack: Array.from(document.querySelectorAll('.malagaunt-checkbox'))
+                        .map(cb => cb.style.backgroundColor === 'black'),
+                    notes: notesTextarea.value,
+                    notesVisible: notesContent.classList.contains('visible'),
+                    lastUpdated: new Date().toISOString()
+                };
+                localStorage.setItem('dungeonState', JSON.stringify(state));
+            } catch (e) {
+                console.warn('Error saving state:', e);
+            }
+        }
+
+        function loadState() {
+            if (!isStorageAvailable()) {
+                console.warn('Local storage is not available');
+                return;
+            }
+            try {
+                const savedState = localStorage.getItem('dungeonState');
+                if (savedState) {
+                    const state = JSON.parse(savedState);
+                    
+                    if (state.notes) {
+                        notesTextarea.value = state.notes;
+                    }
+                    
+                    if (state.notesVisible) {
+                        notesContent.classList.add('visible');
+                        collapseIcon.classList.add('rotated');
+                    }
+
+                    if (state.malagauntTrack && Array.isArray(state.malagauntTrack)) {
+                        document.querySelectorAll('.malagaunt-checkbox').forEach((cb, i) => {
+                            if (i < state.malagauntTrack.length) {
+                                cb.style.backgroundColor = state.malagauntTrack[i] ? 'black' : '';
+                            }
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn('Error loading state:', e);
+                // Create backup of corrupted state
+                if (localStorage.getItem('dungeonState')) {
+                    localStorage.setItem('dungeonState_backup_' + Date.now(), 
+                                        localStorage.getItem('dungeonState'));
+                }
+            }
+        }
+
+        // Add reset button with confirmation
+        const resetButton = document.createElement('button');
+        resetButton.textContent = 'Reset Campaign';
+        resetButton.style.margin = '20px';
+        resetButton.style.padding = '10px';
+        resetButton.style.cursor = 'pointer';
+        resetButton.addEventListener('click', function() {
+            if (confirm('Are you sure you want to reset the campaign? This will clear all progress.')) {
+                localStorage.removeItem('dungeonState');
+                location.reload();
+            }
+        });
+        document.body.appendChild(resetButton);
+
+        // Load state on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+        });
+
+        // Save state on changes
+        notesTextarea.addEventListener('input', saveState);
+    </script>
+</body>
+</html> 
