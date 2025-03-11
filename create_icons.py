@@ -17,7 +17,7 @@ def main():
     os.makedirs('logos', exist_ok=True)
     
     # Define sizes and create icons
-    sizes = [32, 64, 128, 256, 512]
+    sizes = [32, 64, 128, 192, 256, 512]
     for size in sizes:
         output_path = f'logos/logo-{size}.png'
         create_circular_icon(size, output_path=output_path)

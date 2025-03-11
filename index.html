@@ -356,132 +356,59 @@
     <!-- Toast Container for Notifications -->
     <div id="toastContainer" aria-live="polite" aria-atomic="true" class="toast-container position-fixed top-0 end-0 p-3"></div>
 
-    <div class="container my-4">
-        <!-- Deck Builder Controls - Wrapping all builder controls in one div -->
-        <div id="deckBuilderControls">
-            <!-- Game Selection -->
-            <section id="gameSelection" class="mb-4">
-                <div class="section-header">
-                    <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#gameCheckboxes" aria-expanded="false" aria-controls="gameCheckboxes">
-                        <i class="fas fa-chevron-down mr-2"></i>Select Games
-                    </button>
-                </div>
-                <div id="gameCheckboxes" class="collapse">
-                    <!-- Game checkboxes will be populated here -->
-                </div>
-            </section>
-
-            <!-- Card Type Selection and Scenario Config -->
-            <section id="cardTypeSection" class="mb-4">
-                <div class="section-header">
-                    <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#cardTypeContent" aria-expanded="false" aria-controls="cardTypeContent">
-                        <i class="fas fa-chevron-down mr-2"></i>Configure Deck
-                    </button>
-                </div>
-                <div id="cardTypeContent" class="collapse">
-                    <!-- Scenario Config Section -->
-                    <section id="scenarioConfig" class="mb-3">
-                        <!-- Difficulty Selection -->
-                        <div class="form-group">
-                            <label for="difficultyLevel">Difficulty Level:</label>
-                            <select id="difficultyLevel" class="form-control">
-                                <!-- Options populated dynamically -->
-                            </select>
-                            <small id="difficultyDetails" class="form-text text-muted mt-2"></small>
-                        </div>
-
-                        <!-- Enable Sentry Rules Checkbox -->
-                        <div class="form-group form-check">
-                            <input type="checkbox" class="form-check-input" id="enableSentryRules">
-                            <label class="form-check-label" for="enableSentryRules">Enable Sentry Rules</label>
-                            <small class="form-text text-muted">Sentry cards will be introduced later in the game.</small>
-                        </div>
-
-                        <!-- Enable Corrupter Rules Checkbox -->
-                        <div class="form-group form-check">
-                            <input type="checkbox" class="form-check-input" id="enableCorrupterRules">
-                            <label class="form-check-label" for="enableCorrupterRules">Enable Corrupter Rules</label>
-                            <small class="form-text text-muted">Corrupter cards will replace 5 random cards.</small>
-                        </div>
-                    </section>
-
-                    <!-- Card Type Selection -->
-                    <div id="cardTypeInputs" class="row">
-                        <!-- Card type inputs populated dynamically -->
-                        <div class="input-group">
-                            <label for="cardType1">Card Type 1:</label>
-                            <button class="btn btn-secondary btn-minus">-</button>
-                            <input type="number" id="cardType1" class="form-control" value="0" min="0">
-                            <button class="btn btn-secondary btn-plus">+</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Generate Deck Button -->
-            <button id="generateDeck" class="btn btn-primary btn-lg btn-block mb-4">Generate Deck</button>
+    <div class="container mt-4">
+        <!-- Game Selection Section -->
+        <div class="section mb-4">
+            <h3>Game Selection</h3>
+            <div id="gameSelection" class="game-checkboxes">
+                <!-- Game checkboxes will be added here dynamically -->
+            </div>
         </div>
 
-        <!-- Simplified Active Deck Section - No header, just content -->
-        <div id="activeDeckSection" style="display: none;">
-            <!-- Deck Output -->
-            <section id="deckOutput" class="mb-4 text-center">
-                <!-- Add clear button for active card -->
-                <button id="clearActiveCard" class="btn btn-danger btn-sm position-absolute" style="top: 5px; right: 5px; display: none;">
-                    <i class="fas fa-times"></i>
-                </button>
-            </section>
-
-            <!-- Progress Bar -->
-            <div id="deckProgress" class="mb-4" style="display: none;">
-                <div class="progress">
-                    <div id="progressBar" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
-                    <div id="progressText" class="progress-text"></div>
-                </div>
+        <!-- Difficulty Selection Section -->
+        <div class="section mb-4">
+            <h3>Difficulty Level</h3>
+            <select id="difficultyLevel" class="form-control">
+                <!-- Difficulty options will be added here dynamically -->
+            </select>
+            <div id="difficultyDescription" class="mt-2 text-muted">
+                <!-- Difficulty description will be added here dynamically -->
             </div>
+        </div>
 
-            <!-- Navigation Buttons -->
-            <div id="navigationButtons" class="mb-4 text-center" style="display: none;">
-                <button id="prevCard" class="btn btn-secondary btn-lg mr-3">
-                    <i class="fas fa-chevron-left mr-2"></i>Previous
-                </button>
-                <button id="markInPlay" class="btn btn-warning btn-lg mr-3">
-                    <i class="fas fa-play-circle mr-2"></i>Mark In Play
-                </button>
-                <button id="nextCard" class="btn btn-secondary btn-lg">
-                    Next<i class="fas fa-chevron-right ml-2"></i>
-                </button>
+        <!-- Card Type Selection Section -->
+        <div class="section mb-4">
+            <h3>Card Types</h3>
+            <div id="cardTypeInputs" class="card-type-inputs">
+                <!-- Card type inputs will be added here dynamically -->
             </div>
+        </div>
 
-            <!-- Card Action Section -->
-            <section id="cardActionSection" class="mb-4" style="display: none;">
-                <div class="form-group">
-                    <label for="cardAction">Card Action:</label>
-                    <select id="cardAction" class="form-control form-control-lg">
-                        <option value="">Select an action...</option>
-                        <option value="shuffleAnywhere">Shuffle into remaining deck</option>
-                        <option value="shuffleTopN">Shuffle into next N cards</option>
-                        <option value="replaceSameType">Replace with same type</option>
-                        <option value="introduceSentry">Introduce Sentry cards</option>
-                    </select>
+        <!-- Special Card Type Selection Section -->
+        <div class="section mb-4">
+            <h3>Special Card Types</h3>
+            <div id="specialCardTypeInputs" class="card-type-inputs">
+                <!-- Special card type inputs will be added here dynamically -->
+            </div>
+        </div>
 
-                    <div id="actionTopNInput" class="mt-3" style="display: none;">
-                        <label for="actionN">Number of cards (N):</label>
-                        <input type="number" id="actionN" class="form-control form-control-lg" value="3" min="1">
-                    </div>
+        <!-- Rules Section -->
+        <div class="section mb-4">
+            <h3>Rules</h3>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="enableSentryRules">
+                <label class="form-check-label" for="enableSentryRules">Enable Sentry Rules</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="enableCorrupterRules">
+                <label class="form-check-label" for="enableCorrupterRules">Enable Corrupter Rules</label>
+            </div>
+        </div>
 
-                    <button id="applyCardAction" class="btn btn-success btn-lg btn-block mt-3">Apply Action</button>
-                </div>
-            </section>
-
-            <!-- In Play Cards Section -->
-            <section id="inPlaySection" class="mb-4">
-                <h3 class="mb-3">In Play Cards</h3>
-                <div id="inPlayCards" class="d-flex flex-wrap justify-content-center mb-3">
-                    <!-- In Play cards populated dynamically -->
-                </div>
-                <button id="clearInPlayCards" class="btn btn-danger btn-lg btn-block">Clear In-Play Cards</button>
-            </section>
+        <!-- Generate Button -->
+        <div class="section mb-4">
+            <button id="generateDeck" class="btn btn-primary">Generate Deck</button>
+            <button id="resetAll" class="btn btn-danger ml-2">Reset All</button>
         </div>
     </div>
 

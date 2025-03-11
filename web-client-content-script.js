@@ -137,6 +137,143 @@ function handleStorageResult(data) {
   console.log('[WebClientContentScript] Storage data made available to page');
 }
 
+// Check if we're in an extension context
+const isExtensionContext = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
+
+// Storage handler that works in both extension and web contexts
+const StorageHandler = {
+    async get(keys) {
+        if (isExtensionContext) {
+            return new Promise((resolve, reject) => {
+                chrome.storage.local.get(keys, (result) => {
+                    if (chrome.runtime.lastError) {
+                        reject(chrome.runtime.lastError);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+        } else {
+            // Use localStorage in web context
+            const result = {};
+            if (Array.isArray(keys)) {
+                keys.forEach(key => {
+                    const value = localStorage.getItem(key);
+                    if (value !== null) {
+                        try {
+                            result[key] = JSON.parse(value);
+                        } catch {
+                            result[key] = value;
+                        }
+                    }
+                });
+            } else if (typeof keys === 'object') {
+                Object.keys(keys).forEach(key => {
+                    const value = localStorage.getItem(key);
+                    result[key] = value !== null ? JSON.parse(value) : keys[key];
+                });
+            } else if (typeof keys === 'string') {
+                const value = localStorage.getItem(keys);
+                if (value !== null) {
+                    try {
+                        result[keys] = JSON.parse(value);
+                    } catch {
+                        result[keys] = value;
+                    }
+                }
+            }
+            return Promise.resolve(result);
+        }
+    },
+
+    async set(items) {
+        if (isExtensionContext) {
+            return new Promise((resolve, reject) => {
+                chrome.storage.local.set(items, () => {
+                    if (chrome.runtime.lastError) {
+                        reject(chrome.runtime.lastError);
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+        } else {
+            // Use localStorage in web context
+            Object.entries(items).forEach(([key, value]) => {
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                } catch (e) {
+                    console.error('Error saving to localStorage:', e);
+                    throw e;
+                }
+            });
+            return Promise.resolve();
+        }
+    },
+
+    async remove(keys) {
+        if (isExtensionContext) {
+            return new Promise((resolve, reject) => {
+                chrome.storage.local.remove(keys, () => {
+                    if (chrome.runtime.lastError) {
+                        reject(chrome.runtime.lastError);
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+        } else {
+            // Use localStorage in web context
+            if (Array.isArray(keys)) {
+                keys.forEach(key => localStorage.removeItem(key));
+            } else {
+                localStorage.removeItem(keys);
+            }
+            return Promise.resolve();
+        }
+    }
+};
+
+// Listen for storage requests from the page
+window.addEventListener('message', async (event) => {
+    // Only accept messages from the same origin
+    if (event.origin !== window.location.origin) return;
+
+    const { type, data } = event.data;
+    if (!type || !type.startsWith('storage:')) return;
+
+    try {
+        let result;
+        switch (type) {
+            case 'storage:get':
+                result = await StorageHandler.get(data.keys);
+                window.postMessage({ type: 'storage:response', id: data.id, result }, '*');
+                break;
+
+            case 'storage:set':
+                await StorageHandler.set(data.items);
+                window.postMessage({ type: 'storage:response', id: data.id, result: true }, '*');
+                break;
+
+            case 'storage:remove':
+                await StorageHandler.remove(data.keys);
+                window.postMessage({ type: 'storage:response', id: data.id, result: true }, '*');
+                break;
+        }
+    } catch (error) {
+        window.postMessage({ 
+            type: 'storage:error', 
+            id: data.id, 
+            error: { message: error.message } 
+        }, '*');
+    }
+});
+
+// Initialize storage access
+document.dispatchEvent(new CustomEvent('storageReady', {
+    detail: { isExtensionContext }
+}));
+
 // Export for module usage if needed
 if (typeof module !== 'undefined') {
   module.exports = {
