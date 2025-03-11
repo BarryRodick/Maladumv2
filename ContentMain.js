@@ -3,70 +3,92 @@
  * Handles content script initialization and communication with the background service worker
  */
 
-// Log initialization with document state
-console.log('[ContentService] document.readyState:', document.readyState);
-
-// Initialize content script data
-const contentInitData = {
-  TabId: chrome.runtime.id ? parseInt(chrome.runtime.id.replace(/\D/g, '')) : 0,
-  FrameId: 0
+const ContentService = {
+    initialized: false,
+    
+    init() {
+        if (this.initialized) return;
+        
+        console.log('[ContentMain]');
+        this.setupContentScript();
+        this.initialized = true;
+    },
+    
+    setupContentScript() {
+        // Log readyState for debugging
+        console.log('[ContentService] document.readyState:', document.readyState);
+        
+        // Set initial content data
+        this.setContentInitData();
+        
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.onDOMReady());
+        } else {
+            this.onDOMReady();
+        }
+    },
+    
+    setContentInitData() {
+        const target = {
+            TabId: chrome?.runtime?.id ? Date.now() : 0,
+            FrameId: 0
+        };
+        console.log('[ContentService.SetContentInitData] target:', target);
+    },
+    
+    onDOMReady() {
+        // Initialize storage access
+        this.initializeStorage();
+    },
+    
+    async initializeStorage() {
+        try {
+            // Check if we're in extension context
+            if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+                await this.initializeExtensionStorage();
+            } else {
+                this.initializeLocalStorage();
+            }
+        } catch (error) {
+            console.warn('[ContentService] Storage initialization error:', error);
+            this.initializeLocalStorage();
+        }
+    },
+    
+    async initializeExtensionStorage() {
+        return new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage({
+                action: 'getStorageData',
+                keys: ['deckbuilderState', 'deckbuilderConfig']
+            }, (response) => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError);
+                    return;
+                }
+                resolve(response);
+            });
+        });
+    },
+    
+    initializeLocalStorage() {
+        // Use localStorage when not in extension context
+        const storageEvent = new CustomEvent('storageDataAvailable', {
+            detail: {
+                deckbuilderState: localStorage.getItem('deckbuilderState'),
+                deckbuilderConfig: localStorage.getItem('deckbuilderConfig')
+            }
+        });
+        document.dispatchEvent(storageEvent);
+    }
 };
 
-// Log initialization data
-console.log('[ContentService.SetContentInitData] target:', contentInitData);
-
-// Wait for DOM to be fully loaded before performing operations
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeContent);
-} else {
-  initializeContent();
-}
-
-/**
- * Initializes the content script functionality
- */
-function initializeContent() {
-  // Set up message listener for communication with background script
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'getPageInfo') {
-      const pageInfo = {
-        url: window.location.href,
-        title: document.title
-      };
-      sendResponse(pageInfo);
-      return true;
-    }
-  });
-
-  // Handle storage access safely through the service worker
-  try {
-    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
-      // Request storage data from service worker instead of accessing directly
-      chrome.runtime.sendMessage(
-        { action: 'getStorageData' },
-        (response) => {
-          if (chrome.runtime.lastError) {
-            console.warn('[ContentService] Storage request error:', chrome.runtime.lastError.message);
-            return;
-          }
-          
-          if (response && response.success) {
-            console.log('[ContentService] Storage data loaded successfully');
-          }
-        }
-      );
-    } else {
-      console.warn('[ContentService] Not in a valid extension context');
-    }
-  } catch (error) {
-    console.warn('[ContentService] Storage access error:', error.message);
-    // Don't throw error, just log it
-  }
-}
+// Initialize the content script
+ContentService.init();
 
 // Export for module usage if needed
 if (typeof module !== 'undefined') {
   module.exports = {
-    contentInitData
+    contentInitData: ContentService.setContentInitData()
   };
 } 

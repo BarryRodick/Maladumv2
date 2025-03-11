@@ -1,22 +1,37 @@
 {
   "manifest_version": 3,
-  "name": "Maladum Event Cards",
-  "short_name": "Maladum",
+  "name": "Maladum V2",
+  "short_name": "MaladumV2",
   "version": "1.0.0",
-  "description": "Event card deck builder for Maladum",
+  "description": "A deck building game",
   "author": "barryrodics",
   "start_url": "/Maladumv2/",
   "display": "standalone",
-  "background_color": "#1a1a1a",
-  "theme_color": "#1a1a1a",
+  "background_color": "#ffffff",
+  "theme_color": "#4A90E2",
   "icons": [
     {
-      "src": "/Maladumv2/logos/icon-192x192.png",
-      "sizes": "192x192",
+      "src": "logos/logo-32.png",
+      "sizes": "32x32",
       "type": "image/png"
     },
     {
-      "src": "/Maladumv2/logos/icon-512x512.png",
+      "src": "logos/logo-64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "logos/logo-128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "logos/logo-256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "logos/logo-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

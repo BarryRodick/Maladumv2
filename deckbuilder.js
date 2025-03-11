@@ -5,32 +5,70 @@
 // ============================
 
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js')
-            .then((registration) => {
-                console.log('Service Worker registered with scope:', registration.scope);
-
-                // Listen for updates to the service worker
-                registration.onupdatefound = () => {
-                    const installingWorker = registration.installing;
-                    installingWorker.onstatechange = () => {
-                        if (installingWorker.state === 'installed') {
-                            if (navigator.serviceWorker.controller) {
-                                // New update available
-                                showUpdateNotification();
-                            }
-                        }
-                    };
-                };
-            }, (err) => {
-                console.error('Service Worker registration failed:', err);
+    window.addEventListener('load', async () => {
+        try {
+            const registration = await navigator.serviceWorker.register('/Maladumv2/service-worker.js', {
+                scope: '/Maladumv2/'
             });
+            console.log('Service Worker registered with scope:', registration.scope);
+
+            // Listen for updates to the service worker
+            registration.addEventListener('updatefound', () => {
+                const installingWorker = registration.installing;
+                if (installingWorker) {
+                    installingWorker.addEventListener('statechange', () => {
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            // New update available
+                            showUpdateNotification();
+                        }
+                    });
+                }
+            });
+        } catch (error) {
+            console.error('Service Worker registration failed:', error);
+            // Continue without service worker functionality
+            initializeWithoutServiceWorker();
+        }
     });
 
     navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data.type === 'NEW_VERSION') {
             showUpdateNotification(event.data.version);
         }
+    });
+} else {
+    console.log('Service Workers are not supported in this browser');
+    initializeWithoutServiceWorker();
+}
+
+function initializeWithoutServiceWorker() {
+    // Initialize the app without service worker features
+    document.addEventListener('DOMContentLoaded', () => {
+        // Enable dark mode by default
+        document.body.classList.add('dark-mode');
+        
+        // Load saved configuration
+        const savedConfig = loadConfiguration();
+        
+        // Load saved state
+        const savedState = loadState();
+        
+        // Initialize UI elements
+        initializeUI();
+        
+        // Load data directly without service worker caching
+        Promise.all([
+            fetch('data/maladumcards.json').then(response => response.json()),
+            fetch('data/difficulties.json').then(response => response.json())
+        ])
+        .then(([cardsData, difficultiesData]) => {
+            // Initialize with loaded data
+            initializeWithData(cardsData, difficultiesData, savedConfig, savedState);
+        })
+        .catch(error => {
+            console.error('Error loading data:', error);
+            showErrorMessage('Failed to load game data. Please check your connection and refresh the page.');
+        });
     });
 }
 
@@ -311,262 +349,6 @@ function loadConfiguration() {
 // 4. Initialization and Data Loading
 // ============================
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Enable dark mode by default (optional)
-  document.body.classList.add('dark-mode');
-  state.ui.darkMode = true;
-  
-  // Load saved configuration first
-  const savedConfig = loadConfiguration();
-  
-  // Load saved state
-  const savedState = loadState();
-  
-  // Initialize UI elements
-  initializeUI();
-  
-  // Fetch the JSON files and load the data
-  Promise.all([
-    fetch('data/maladumcards.json')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .catch(error => {
-        console.error('Error loading maladumcards.json:', error);
-        return { games: {}, sentryTypes: [], corrupterTypes: [], heldBackCardTypes: [] };
-      }),
-    fetch('data/difficulties.json')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .catch(error => {
-        console.error('Error loading difficulties.json:', error);
-        return { difficulties: [] };
-      })
-  ])
-  .then(([cardsData, difficultiesData]) => {
-    // Safely assign data
-    dataStore = cardsData || { games: {} };
-    difficultySettings = difficultiesData?.difficulties || [];
-    
-    // Mark data as loaded
-    state.dataLoaded = true;
-    
-    // Initialize game checkboxes
-    initializeGameCheckboxes();
-    
-    // Initialize difficulty selector - check if function exists first
-    if (typeof initializeDifficultySelector === 'function') {
-      initializeDifficultySelector();
-    } else {
-      console.warn('initializeDifficultySelector function not found, skipping difficulty initialization');
-    }
-    
-    // Restore saved configuration if available
-    if (savedConfig) {
-      restoreConfiguration(savedConfig);
-    }
-    
-    // Restore saved state if available
-    if (savedState && savedState.deck && savedState.deck.combined && savedState.deck.combined.length > 0) {
-      restoreState(savedState);
-    }
-    
-    // Process any deferred restoration
-    if (deferredRestoration) {
-      deferredRestoration();
-      deferredRestoration = null;
-    }
-    
-    // Update UI based on loaded state
-    updateUI();
-  })
-  .catch(error => {
-    console.error('Error during initialization:', error);
-    showErrorMessage('Failed to initialize the application. Please refresh the page or check your connection.');
-  });
-});
-
-/**
- * Restores configuration from saved data
- * @param {Object} config - The configuration to restore
- */
-function restoreConfiguration(config) {
-  if (!config) return;
-  
-  try {
-    // Restore selected games
-    if (config.selectedGames && Array.isArray(config.selectedGames)) {
-      state.selectedGames = config.selectedGames;
-      
-      // Update checkboxes
-      config.selectedGames.forEach(game => {
-        const checkbox = document.getElementById(`game-${game}`);
-        if (checkbox) checkbox.checked = true;
-      });
-    }
-    
-    // Restore card counts
-    if (config.cardCounts) {
-      state.cardCounts = config.cardCounts;
-      Object.entries(config.cardCounts).forEach(([type, count]) => {
-        const input = document.getElementById(`count-${type}`);
-        if (input) input.value = count;
-      });
-    }
-    
-    // Restore special card counts
-    if (config.specialCardCounts) {
-      state.specialCardCounts = config.specialCardCounts;
-      Object.entries(config.specialCardCounts).forEach(([type, count]) => {
-        const input = document.getElementById(`special-count-${type}`);
-        if (input) input.value = count;
-      });
-    }
-    
-    // Restore sentry card counts
-    if (config.sentryCardCounts) {
-      state.sentryCardCounts = config.sentryCardCounts;
-      Object.entries(config.sentryCardCounts).forEach(([type, count]) => {
-        const input = document.getElementById(`sentry-count-${type}`);
-        if (input) input.value = count;
-      });
-    }
-    
-    // Restore corrupter card counts
-    if (config.corrupterCardCounts) {
-      state.corrupterCardCounts = config.corrupterCardCounts;
-      Object.entries(config.corrupterCardCounts).forEach(([type, count]) => {
-        const input = document.getElementById(`corrupter-count-${type}`);
-        if (input) input.value = count;
-      });
-    }
-    
-    // Restore settings
-    if (config.settings) {
-      state.settings = {
-        ...state.settings,
-        ...config.settings
-      };
-      
-      // Update UI elements
-      const sentryRulesCheckbox = document.getElementById('enableSentryRules');
-      if (sentryRulesCheckbox) {
-        sentryRulesCheckbox.checked = state.settings.enableSentryRules;
-      }
-      
-      const corrupterRulesCheckbox = document.getElementById('enableCorrupterRules');
-      if (corrupterRulesCheckbox) {
-        corrupterRulesCheckbox.checked = state.settings.enableCorrupterRules;
-      }
-      
-      // Set difficulty
-      const difficultySelect = document.getElementById('difficultySelect');
-      if (difficultySelect && state.settings.selectedDifficultyIndex !== undefined) {
-        difficultySelect.selectedIndex = state.settings.selectedDifficultyIndex;
-        updateDifficultyDescription(state.settings.selectedDifficultyIndex);
-      }
-    }
-    
-    // Update card type selectors based on restored configuration
-    updateCardTypeSelectors();
-  } catch (e) {
-    console.error('Error restoring configuration:', e);
-  }
-}
-
-/**
- * Restores deck state from saved data
- * @param {Object} savedState - The state to restore
- */
-function restoreState(savedState) {
-  if (!savedState) return;
-  
-  try {
-    // Restore deck state
-    if (savedState.deck) {
-      state.deck = {
-        main: savedState.deck.main || [],
-        special: savedState.deck.special || [],
-        sentry: savedState.deck.sentry || [],
-        combined: savedState.deck.combined || [],
-        discard: savedState.deck.discard || [],
-        inPlay: savedState.deck.inPlay || []
-      };
-    }
-    
-    // Restore current index
-    if (savedState.currentIndex !== undefined) {
-      state.currentIndex = savedState.currentIndex;
-    }
-    
-    // Restore UI state
-    if (savedState.ui) {
-      state.ui = {
-        ...state.ui,
-        ...savedState.ui
-      };
-      
-      // Apply dark mode if needed
-      if (state.ui.darkMode) {
-        document.body.classList.add('dark-mode');
-      } else {
-        document.body.classList.remove('dark-mode');
-      }
-    }
-    
-    // Display the current deck
-    displayDeck();
-    
-    // Show game controls if we have a deck
-    if (state.deck.combined.length > 0) {
-      showGameControls();
-      
-      // Ensure the active deck section is visible
-      const activeDeckSection = document.getElementById('activeDeckSection');
-      if (activeDeckSection) {
-        activeDeckSection.style.display = 'block';
-      }
-      
-      // Make sure navigation buttons are visible
-      const navigationButtons = document.getElementById('navigationButtons');
-      if (navigationButtons) {
-        navigationButtons.style.display = 'block';
-      }
-      
-      // Make sure progress bar is visible
-      const deckProgress = document.getElementById('deckProgress');
-      if (deckProgress) {
-        deckProgress.style.display = 'block';
-      }
-      
-      // Make sure card action section is visible if applicable
-      const cardActionSection = document.getElementById('cardActionSection');
-      if (cardActionSection) {
-        cardActionSection.style.display = 'block';
-      }
-      
-      // Update in-play cards display
-      displayInPlayCards();
-    }
-    
-    // Update progress indicators
-    updateProgressIndicators();
-  } catch (e) {
-    console.error('Error restoring state:', e);
-  }
-}
-
-// ============================
-// 5. UI Initialization and Updates
-// ============================
-
 /**
  * Initializes UI elements
  */
@@ -783,42 +565,59 @@ function showErrorMessage(message) {
  * Initializes the difficulty selector dropdown
  */
 function initializeDifficultySelector() {
-  const difficultySelect = document.getElementById('difficultySelect');
-  if (!difficultySelect) {
-    console.warn('Difficulty selector not found');
-    return;
-  }
-  
-  // Clear existing options
-  difficultySelect.innerHTML = '';
-  
-  // Add default option
-  const defaultOption = document.createElement('option');
-  defaultOption.value = '';
-  defaultOption.textContent = 'Select Difficulty...';
-  difficultySelect.appendChild(defaultOption);
-  
-  // Add options for each difficulty level
-  difficultySettings.forEach((difficulty, index) => {
-    const option = document.createElement('option');
-    option.value = index;
-    option.textContent = difficulty.name;
-    difficultySelect.appendChild(option);
-  });
-  
-  // Set default selection
-  if (difficultySettings.length > 0) {
-    difficultySelect.selectedIndex = state.settings.selectedDifficultyIndex || 0;
-    updateDifficultyDescription(state.settings.selectedDifficultyIndex || 0);
-  }
-  
-  // Add event listener
-  difficultySelect.addEventListener('change', function() {
-    const selectedIndex = parseInt(this.value);
-    state.settings.selectedDifficultyIndex = selectedIndex;
-    updateDifficultyDescription(selectedIndex);
-    saveConfiguration();
-  });
+    const difficultySelect = document.getElementById('difficultyLevel');
+    if (!difficultySelect) {
+        console.warn('Difficulty selector not found - waiting for element');
+        // Set up a mutation observer to watch for the element
+        const observer = new MutationObserver((mutations, obs) => {
+            const selector = document.getElementById('difficultyLevel');
+            if (selector) {
+                setupDifficultySelector(selector);
+                obs.disconnect();
+            }
+        });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        return;
+    }
+    
+    setupDifficultySelector(difficultySelect);
+}
+
+function setupDifficultySelector(selector) {
+    // Clear existing options
+    selector.innerHTML = '';
+    
+    // Add default option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select Difficulty...';
+    selector.appendChild(defaultOption);
+    
+    // Add options for each difficulty level
+    difficultySettings.forEach((difficulty, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = difficulty.name;
+        selector.appendChild(option);
+    });
+    
+    // Set default selection
+    if (difficultySettings.length > 0) {
+        selector.selectedIndex = state.settings.selectedDifficultyIndex || 0;
+        updateDifficultyDescription(state.settings.selectedDifficultyIndex || 0);
+    }
+    
+    // Add event listener
+    selector.addEventListener('change', function() {
+        const selectedIndex = parseInt(this.value);
+        state.settings.selectedDifficultyIndex = selectedIndex;
+        updateDifficultyDescription(selectedIndex);
+        saveConfiguration();
+    });
 }
 
 /**
@@ -1720,115 +1519,70 @@ function showGameControls() {
  * Updates card type selectors based on selected games and rules
  */
 function updateCardTypeSelectors() {
-  const cardTypeContainer = document.getElementById('cardTypeSelection');
-  const specialCardTypeContainer = document.getElementById('specialCardTypeSelection');
-  const sentryCardTypeContainer = document.getElementById('sentryCardTypeSelection');
-  const corrupterCardTypeContainer = document.getElementById('corrupterCardTypeSelection');
-  
-  if (!cardTypeContainer || !specialCardTypeContainer) {
-    console.warn('Card type containers not found');
-    return;
-  }
-  
-  // Clear existing content
-  cardTypeContainer.innerHTML = '';
-  specialCardTypeContainer.innerHTML = '';
-  
-  // Clear sentry container if it exists
-  if (sentryCardTypeContainer) {
-    sentryCardTypeContainer.innerHTML = '';
-  }
-  
-  // Clear corrupter container if it exists
-  if (corrupterCardTypeContainer) {
-    corrupterCardTypeContainer.innerHTML = '';
-  }
-  
-  // Get selected games
-  const selectedGames = Array.from(document.querySelectorAll('.game-selector:checked')).map(cb => cb.value);
-  state.selectedGames = selectedGames;
-  
-  // If no games selected, return
-  if (selectedGames.length === 0) {
-    return;
-  }
-  
-  // Get all card types from selected games
-  const cardTypes = new Set();
-  const specialCardTypes = new Set();
-  const sentryCardTypes = new Set();
-  const corrupterCardTypes = new Set();
-  
-  selectedGames.forEach(gameId => {
-    const game = dataStore?.games?.[gameId];
-    if (!game) return;
+    const cardTypeContainer = document.getElementById('cardTypeInputs');
+    const specialCardTypeContainer = document.getElementById('specialCardTypeInputs');
     
-    // Add regular card types
-    game.cardTypes.forEach(type => cardTypes.add(type));
-    
-    // Add special card types
-    if (game.specialCardTypes) {
-      game.specialCardTypes.forEach(type => specialCardTypes.add(type));
+    if (!cardTypeContainer || !specialCardTypeContainer) {
+        console.warn('Card type containers not found - waiting for elements');
+        // Set up a mutation observer to watch for the elements
+        const observer = new MutationObserver((mutations, obs) => {
+            const mainContainer = document.getElementById('cardTypeInputs');
+            const specialContainer = document.getElementById('specialCardTypeInputs');
+            
+            if (mainContainer && specialContainer) {
+                setupCardTypeSelectors(mainContainer, specialContainer);
+                obs.disconnect();
+            }
+        });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        return;
     }
     
-    // Add sentry card types if sentry rules enabled
-    if (state.settings.enableSentryRules && game.sentryCardTypes) {
-      game.sentryCardTypes.forEach(type => sentryCardTypes.add(type));
+    setupCardTypeSelectors(cardTypeContainer, specialCardTypeContainer);
+}
+
+function setupCardTypeSelectors(mainContainer, specialContainer) {
+    // Clear existing content
+    mainContainer.innerHTML = '';
+    specialContainer.innerHTML = '';
+    
+    // Get selected games
+    const selectedGames = Array.from(document.querySelectorAll('.game-selector:checked')).map(cb => cb.value);
+    state.selectedGames = selectedGames;
+    
+    // If no games selected, return
+    if (selectedGames.length === 0) {
+        return;
     }
     
-    // Add corrupter card types if corrupter rules enabled
-    if (state.settings.enableCorrupterRules && game.corrupterCardTypes) {
-      game.corrupterCardTypes.forEach(type => corrupterCardTypes.add(type));
-    }
-  });
-  
-  // Create inputs for each card type
-  cardTypes.forEach(type => {
-    createCardTypeInput(cardTypeContainer, type, 'count', state.cardCounts[type] || 0);
-  });
-  
-  // Create inputs for each special card type
-  specialCardTypes.forEach(type => {
-    createCardTypeInput(specialCardTypeContainer, type, 'special-count', state.specialCardCounts[type] || 0);
-  });
-  
-  // Create inputs for each sentry card type if sentry rules enabled
-  if (state.settings.enableSentryRules && sentryCardTypeContainer) {
-    sentryCardTypes.forEach(type => {
-      createCardTypeInput(sentryCardTypeContainer, type, 'sentry-count', state.sentryCardCounts[type] || 0);
+    // Get all card types from selected games
+    const cardTypes = new Set();
+    const specialCardTypes = new Set();
+    
+    selectedGames.forEach(gameId => {
+        const game = dataStore?.games?.[gameId];
+        if (!game) return;
+        
+        // Add regular card types
+        game.cardTypes?.forEach(type => cardTypes.add(type));
+        
+        // Add special card types
+        game.specialCardTypes?.forEach(type => specialCardTypes.add(type));
     });
     
-    // Show sentry section
-    const sentrySection = document.getElementById('sentrySectionContainer');
-    if (sentrySection) {
-      sentrySection.style.display = 'block';
-    }
-  } else {
-    // Hide sentry section
-    const sentrySection = document.getElementById('sentrySectionContainer');
-    if (sentrySection) {
-      sentrySection.style.display = 'none';
-    }
-  }
-  
-  // Create inputs for each corrupter card type if corrupter rules enabled
-  if (state.settings.enableCorrupterRules && corrupterCardTypeContainer) {
-    corrupterCardTypes.forEach(type => {
-      createCardTypeInput(corrupterCardTypeContainer, type, 'corrupter-count', state.corrupterCardCounts[type] || 0);
+    // Create inputs for each card type
+    cardTypes.forEach(type => {
+        createCardTypeInput(mainContainer, type, 'count', state.cardCounts[type] || 0);
     });
     
-    // Show corrupter section
-    const corrupterSection = document.getElementById('corrupterSectionContainer');
-    if (corrupterSection) {
-      corrupterSection.style.display = 'block';
-    }
-  } else {
-    // Hide corrupter section
-    const corrupterSection = document.getElementById('corrupterSectionContainer');
-    if (corrupterSection) {
-      corrupterSection.style.display = 'none';
-    }
-  }
+    // Create inputs for each special card type
+    specialCardTypes.forEach(type => {
+        createCardTypeInput(specialContainer, type, 'special-count', state.specialCardCounts[type] || 0);
+    });
 }
 
 /**
@@ -1862,10 +1616,6 @@ function createCardTypeInput(container, type, prefix, defaultValue) {
       state.cardCounts[type] = value;
     } else if (prefix === 'special-count') {
       state.specialCardCounts[type] = value;
-    } else if (prefix === 'sentry-count') {
-      state.sentryCardCounts[type] = value;
-    } else if (prefix === 'corrupter-count') {
-      state.corrupterCardCounts[type] = value;
     }
     
     saveConfiguration();

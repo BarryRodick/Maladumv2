@@ -1,105 +1,115 @@
 // service-worker.js for Chrome Extension (Manifest V3)
 
-const CACHE_NAME = 'maladum-cache-v1';
-const BASE_PATH = '/Maladumv2';
-const ASSETS_TO_CACHE = [
-    `${BASE_PATH}/`,
-    `${BASE_PATH}/index.html`,
-    `${BASE_PATH}/styles.css`,
-    `${BASE_PATH}/scripts/main.js`,
-    `${BASE_PATH}/scripts/dataLoader.js`,
-    `${BASE_PATH}/scripts/helpers.js`,
-    `${BASE_PATH}/scripts/deckManager.js`,
-    `${BASE_PATH}/data/maladumcards.json`,
-    `${BASE_PATH}/data/difficulties.json`
+const CACHE_NAME = 'maladum-v2-cache';
+const APP_SHELL_FILES = [
+    '/Maladumv2/',
+    '/Maladumv2/index.html',
+    '/Maladumv2/deckbuilder.js',
+    '/Maladumv2/styles.css',
+    '/Maladumv2/data/maladumcards.json',
+    '/Maladumv2/data/difficulties.json',
+    '/Maladumv2/logos/logo-32.png',
+    '/Maladumv2/logos/logo-64.png',
+    '/Maladumv2/logos/logo-128.png',
+    '/Maladumv2/logos/logo-256.png',
+    '/Maladumv2/logos/logo-512.png'
 ];
 
 // Safely check for chrome APIs
 const isExtensionContext = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
 
-// Install event handler
+// Install event - cache app shell files
 self.addEventListener('install', (event) => {
-    console.log('[Service Worker] Install Event');
-    self.skipWaiting();
-    
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                console.log('[Service Worker] Caching resources');
-                return cache.addAll(ASSETS_TO_CACHE);
+                console.log('[Service Worker] Caching app shell files');
+                return cache.addAll(APP_SHELL_FILES)
+                    .catch(error => {
+                        console.error('[Service Worker] Cache addAll failed:', error);
+                        // Continue installation even if some files fail to cache
+                        return Promise.resolve();
+                    });
             })
-            .catch((error) => {
-                console.error('[Service Worker] Failed to cache resources', error);
+            .then(() => {
+                console.log('[Service Worker] Installation complete');
+                return self.skipWaiting();
             })
     );
 });
 
-// Activate event handler
+// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-    console.log('[Service Worker] Activate Event');
     event.waitUntil(
-        Promise.all([
-            clients.claim(),
-            caches.keys().then((cacheNames) => {
+        caches.keys()
+            .then((cacheNames) => {
                 return Promise.all(
                     cacheNames.map((cacheName) => {
                         if (cacheName !== CACHE_NAME) {
-                            console.log('[Service Worker] Deleting old cache:', cacheName);
+                            console.log('[Service Worker] Removing old cache:', cacheName);
                             return caches.delete(cacheName);
                         }
                     })
                 );
             })
-        ])
+            .then(() => {
+                console.log('[Service Worker] Activation complete');
+                return self.clients.claim();
+            })
     );
 });
 
-// Fetch event handler
+// Fetch event - serve from cache, falling back to network
 self.addEventListener('fetch', (event) => {
-    if (event.request.method !== 'GET') return;
-
-    // Handle JSON file requests specifically
-    if (event.request.url.endsWith('.json')) {
-        event.respondWith(
-            fetch(event.request)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    const clonedResponse = response.clone();
-                    caches.open(CACHE_NAME).then(cache => {
-                        cache.put(event.request, clonedResponse);
-                    });
-                    return response;
-                })
-                .catch(error => {
-                    console.error('Error fetching JSON:', error);
-                    return caches.match(event.request);
-                })
-        );
-        return;
-    }
-
     event.respondWith(
         caches.match(event.request)
-            .then(response => {
+            .then((response) => {
                 if (response) {
+                    // Return cached response
                     return response;
                 }
-                return fetch(event.request)
-                    .then(networkResponse => {
-                        if (!networkResponse || networkResponse.status !== 200) {
-                            return networkResponse;
+
+                // Clone the request because it can only be used once
+                const fetchRequest = event.request.clone();
+
+                return fetch(fetchRequest)
+                    .then((response) => {
+                        // Check if response is valid
+                        if (!response || response.status !== 200 || response.type !== 'basic') {
+                            return response;
                         }
-                        const responseToCache = networkResponse.clone();
+
+                        // Clone the response because it can only be used once
+                        const responseToCache = response.clone();
+
+                        // Cache the new resource
                         caches.open(CACHE_NAME)
-                            .then(cache => {
+                            .then((cache) => {
                                 cache.put(event.request, responseToCache);
+                            })
+                            .catch(error => {
+                                console.error('[Service Worker] Cache put failed:', error);
                             });
-                        return networkResponse;
+
+                        return response;
+                    })
+                    .catch(error => {
+                        console.error('[Service Worker] Fetch failed:', error);
+                        // You could return a custom offline page here
+                        return new Response('Network error occurred', {
+                            status: 503,
+                            statusText: 'Service Unavailable'
+                        });
                     });
             })
     );
+});
+
+// Handle messages from the client
+self.addEventListener('message', (event) => {
+    if (event.data.action === 'skipWaiting') {
+        self.skipWaiting();
+    }
 });
 
 // Message handling based on context
