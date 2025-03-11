@@ -8,7 +8,7 @@ import { showToast } from './helpers.js';
  * @param {string} difficultiesPath - Path to the difficulties JSON file.
  * @returns {Promise<{cardsData: Object, difficultiesData: Object}>}
  */
-export async function loadData(cardsPath = './data/maladumcards.json', difficultiesPath = '/data/difficulties.json') {
+export async function loadData(cardsPath = '../data/maladumcards.json', difficultiesPath = '../data/difficulties.json') {
     try {
         const [cardsResponse, difficultiesResponse] = await Promise.all([
             fetch(cardsPath),

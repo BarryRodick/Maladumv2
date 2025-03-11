@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Fetch the JSON files and load the data
   Promise.all([
-    fetch('maladumcards.json')
+    fetch('data/maladumcards.json')
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -338,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Error loading maladumcards.json:', error);
         return { games: {}, sentryTypes: [], corrupterTypes: [], heldBackCardTypes: [] };
       }),
-    fetch('difficulties.json')
+    fetch('data/difficulties.json')
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

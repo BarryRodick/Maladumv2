@@ -1,26 +1,26 @@
 {
   "manifest_version": 3,
   "name": "Maladum Event Cards",
-  "short_name": "MaladumCards",
+  "short_name": "Maladum",
   "version": "1.0.0",
-  "description": "Track and manage event cards for Maladum games",
+  "description": "Event card deck builder for Maladum",
   "author": "barryrodics",
-  "background": {
-    "service_worker": "service-worker.js"
-  },
-  "action": {
-    "default_popup": "index.html",
-    "default_icon": {
-      "16": "logos/gameicon.jpg",
-      "48": "logos/gameicon.jpg",
-      "128": "logos/gameicon.jpg"
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#1a1a1a",
+  "icons": [
+    {
+      "src": "logos/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logos/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
-  },
-  "icons": {
-    "16": "logos/gameicon.jpg",
-    "48": "logos/gameicon.jpg",
-    "128": "logos/gameicon.jpg"
-  },
+  ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
