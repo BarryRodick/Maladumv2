@@ -107,8 +107,20 @@ self.addEventListener('fetch', (event) => {
 
 // Handle messages from the client
 self.addEventListener('message', (event) => {
+    if (!event.data) return;
+
     if (event.data.action === 'skipWaiting') {
         self.skipWaiting();
+    } else if (event.data.type === 'GET_VERSION') {
+        // Get all clients
+        self.clients.matchAll().then(clients => {
+            clients.forEach(client => {
+                client.postMessage({
+                    type: 'VERSION_UPDATE',
+                    version: CACHE_NAME
+                });
+            });
+        });
     }
 });
 

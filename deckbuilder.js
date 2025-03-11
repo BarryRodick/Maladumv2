@@ -1861,14 +1861,25 @@ function createCardTypeContainers() {
 // Add this function after the existing initialization functions
 async function loadGameData() {
     try {
-        // Load both JSON files
+        // Use the correct paths for GitHub Pages
+        const basePath = '/Maladumv2';
         const [cardsResponse, difficultiesResponse] = await Promise.all([
-            fetch('data/maladumcards.json'),
-            fetch('data/difficulties.json')
+            fetch(`${basePath}/data/maladumcards.json`),
+            fetch(`${basePath}/data/difficulties.json`)
         ]);
+
+        if (!cardsResponse.ok) {
+            throw new Error(`Failed to load cards data: ${cardsResponse.status} ${cardsResponse.statusText}`);
+        }
+        if (!difficultiesResponse.ok) {
+            throw new Error(`Failed to load difficulties data: ${difficultiesResponse.status} ${difficultiesResponse.statusText}`);
+        }
 
         const cardsData = await cardsResponse.json();
         const difficultiesData = await difficultiesResponse.json();
+
+        console.log('Loaded cards data:', cardsData);
+        console.log('Loaded difficulties data:', difficultiesData);
 
         // Store the data in our dataStore
         dataStore = {
@@ -1886,9 +1897,7 @@ async function loadGameData() {
                     cards: cards,
                     cardTypes: new Set(cards.map(card => card.type)),
                     specialCardTypes: new Set(cards.filter(card => 
-                        card.type === "Novice" || 
-                        card.type === "Commander" || 
-                        card.type === "Veteran"
+                        dataStore.heldBackCardTypes.includes(card.type)
                     ).map(card => card.type))
                 };
             });
@@ -1906,7 +1915,7 @@ async function loadGameData() {
         console.log('Game data loaded successfully');
     } catch (error) {
         console.error('Error loading game data:', error);
-        showErrorMessage('Failed to load game data. Please refresh the page.');
+        showErrorMessage(`Failed to load game data: ${error.message}`);
     }
 }
 
