@@ -1804,3 +1804,56 @@ document.addEventListener('deckStateRestored', function(event) {
         console.error('Error handling deck state restoration:', error);
     }
 });
+
+// Wait for DOM to be fully loaded before initializing
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize UI elements
+    initializeUI();
+    
+    // Initialize difficulty selector
+    const difficultyLevelElement = document.getElementById('difficultyLevel');
+    if (!difficultyLevelElement) {
+        console.warn('Difficulty selector not found, creating element');
+        const container = document.querySelector('.section:nth-child(2)');
+        if (container) {
+            const select = document.createElement('select');
+            select.id = 'difficultyLevel';
+            select.className = 'form-control';
+            container.appendChild(select);
+            initializeDifficultySelector();
+        }
+    } else {
+        initializeDifficultySelector();
+    }
+    
+    // Initialize card type containers
+    const cardTypeContainer = document.getElementById('cardTypeInputs');
+    const specialCardTypeContainer = document.getElementById('specialCardTypeInputs');
+    
+    if (!cardTypeContainer || !specialCardTypeContainer) {
+        console.warn('Card type containers not found, creating elements');
+        createCardTypeContainers();
+    }
+    
+    updateCardTypeSelectors();
+});
+
+function createCardTypeContainers() {
+    const sections = document.querySelectorAll('.section');
+    sections.forEach(section => {
+        const title = section.querySelector('h3');
+        if (title) {
+            if (title.textContent === 'Card Types' && !document.getElementById('cardTypeInputs')) {
+                const container = document.createElement('div');
+                container.id = 'cardTypeInputs';
+                container.className = 'card-type-inputs';
+                section.appendChild(container);
+            } else if (title.textContent === 'Special Card Types' && !document.getElementById('specialCardTypeInputs')) {
+                const container = document.createElement('div');
+                container.id = 'specialCardTypeInputs';
+                container.className = 'card-type-inputs';
+                section.appendChild(container);
+            }
+        }
+    });
+}

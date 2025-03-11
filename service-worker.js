@@ -144,8 +144,20 @@ if (isExtensionContext) {
 } else {
     // Web context message handling
     self.addEventListener('message', (event) => {
+        if (!event.ports || !event.ports[0]) {
+            // If no MessagePort is available, try to get clients
+            self.clients.matchAll().then(clients => {
+                clients.forEach(client => {
+                    client.postMessage({
+                        type: 'VERSION_UPDATE',
+                        version: CACHE_NAME
+                    });
+                });
+            });
+            return;
+        }
+
         const message = event.data;
-        
         if (message.type === 'GET_VERSION') {
             event.ports[0].postMessage({
                 success: true,
