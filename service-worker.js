@@ -14,6 +14,9 @@ const ASSETS_TO_CACHE = [
     `${BASE_PATH}/data/difficulties.json`
 ];
 
+// Safely check for chrome APIs
+const isExtensionContext = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
+
 // Install event handler
 self.addEventListener('install', (event) => {
     console.log('[Service Worker] Install Event');
@@ -99,33 +102,48 @@ self.addEventListener('fetch', (event) => {
     );
 });
 
-// Message event handler
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log('[Service Worker] Message received:', message);
-    
-    if (!message || !message.action) {
-        sendResponse({ success: false, error: 'Invalid message format' });
-        return false;
-    }
-    
-    switch (message.action) {
-        case 'GET_VERSION':
-            sendResponse({ success: true, version: EXTENSION_VERSION });
+// Message handling based on context
+if (isExtensionContext) {
+    // Extension context message handling
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        console.log('[Service Worker] Message received:', message);
+        
+        if (!message || !message.action) {
+            sendResponse({ success: false, error: 'Invalid message format' });
             return false;
-            
-        case 'getStorageData':
-            handleStorageRequest(message, sender, sendResponse);
-            return true; // Keep the message channel open for async response
-            
-        case 'setStorageData':
-            handleStorageUpdate(message, sender, sendResponse);
-            return true; // Keep the message channel open for async response
-            
-        default:
-            sendResponse({ success: false, error: 'Unknown action' });
-            return false;
-    }
-});
+        }
+        
+        switch (message.action) {
+            case 'GET_VERSION':
+                sendResponse({ success: true, version: CACHE_NAME });
+                return false;
+                
+            case 'getStorageData':
+                handleStorageRequest(message, sender, sendResponse);
+                return true; // Keep the message channel open for async response
+                
+            case 'setStorageData':
+                handleStorageUpdate(message, sender, sendResponse);
+                return true; // Keep the message channel open for async response
+                
+            default:
+                sendResponse({ success: false, error: 'Unknown action' });
+                return false;
+        }
+    });
+} else {
+    // Web context message handling
+    self.addEventListener('message', (event) => {
+        const message = event.data;
+        
+        if (message.type === 'GET_VERSION') {
+            event.ports[0].postMessage({
+                success: true,
+                version: CACHE_NAME
+            });
+        }
+    });
+}
 
 /**
  * Handles storage data requests
@@ -134,6 +152,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * @param {Function} sendResponse - The response callback
  */
 function handleStorageRequest(message, sender, sendResponse) {
+    if (!isExtensionContext) {
+        sendResponse({ success: false, error: 'Storage API not available in web context' });
+        return;
+    }
+
     const keys = message.keys || null;
     
     try {
@@ -166,6 +189,11 @@ function handleStorageRequest(message, sender, sendResponse) {
  * @param {Function} sendResponse - The response callback
  */
 function handleStorageUpdate(message, sender, sendResponse) {
+    if (!isExtensionContext) {
+        sendResponse({ success: false, error: 'Storage API not available in web context' });
+        return;
+    }
+
     const data = message.data || {};
     
     if (Object.keys(data).length === 0) {
@@ -191,17 +219,19 @@ function handleStorageUpdate(message, sender, sendResponse) {
             sendResponse({ success: true });
             
             // Notify all tabs about the storage update
-            chrome.tabs.query({}, (tabs) => {
-                tabs.forEach(tab => {
-                    chrome.tabs.sendMessage(tab.id, {
-                        action: 'storageResult',
-                        data: data
-                    }).catch(error => {
-                        // Ignore errors from tabs that can't receive messages
-                        console.log('[Service Worker] Could not notify tab:', tab.id);
+            if (chrome.tabs) {
+                chrome.tabs.query({}, (tabs) => {
+                    tabs.forEach(tab => {
+                        chrome.tabs.sendMessage(tab.id, {
+                            action: 'storageResult',
+                            data: data
+                        }).catch(error => {
+                            // Ignore errors from tabs that can't receive messages
+                            console.log('[Service Worker] Could not notify tab:', tab.id);
+                        });
                     });
                 });
-            });
+            }
         });
     } catch (error) {
         console.error('[Service Worker] Storage update error:', error.message);

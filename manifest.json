@@ -5,18 +5,18 @@
   "version": "1.0.0",
   "description": "Event card deck builder for Maladum",
   "author": "barryrodics",
-  "start_url": "/",
+  "start_url": "/Maladumv2/",
   "display": "standalone",
   "background_color": "#1a1a1a",
   "theme_color": "#1a1a1a",
   "icons": [
     {
-      "src": "logos/icon-192x192.png",
+      "src": "/Maladumv2/logos/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "logos/icon-512x512.png",
+      "src": "/Maladumv2/logos/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

@@ -24,28 +24,35 @@ function initializeContentScript() {
  * Sets up message passing with the background script
  */
 function setupMessagePassing() {
-  // Listen for messages from the background script
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (!message || !message.action) return false;
-    
-    switch (message.action) {
-      case 'getPageInfo':
-        sendResponse({
-          url: window.location.href,
-          title: document.title,
-          readyState: document.readyState
-        });
-        return true;
+  try {
+    // Check if we're in a valid extension context
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+      // Listen for messages from the background script
+      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (!message || !message.action) return false;
         
-      case 'storageResult':
-        // Handle storage data received from background
-        handleStorageResult(message.data);
-        return false;
-        
-      default:
-        return false;
+        switch (message.action) {
+          case 'getPageInfo':
+            sendResponse({
+              url: window.location.href,
+              title: document.title,
+              readyState: document.readyState
+            });
+            return true;
+            
+          case 'storageResult':
+            // Handle storage data received from background
+            handleStorageResult(message.data);
+            return false;
+            
+          default:
+            return false;
+        }
+      });
     }
-  });
+  } catch (error) {
+    console.warn('[WebClientContentScript] Message passing setup error:', error.message);
+  }
 }
 
 /**
@@ -93,7 +100,7 @@ function setupStorageAccess() {
 function fallbackToLocalStorage() {
   console.log('[WebClientContentScript] Falling back to localStorage');
   try {
-    // Only attempt localStorage access if we're in a page context, not a content script
+    // Only attempt localStorage access if we're in a page context
     if (window.location.protocol !== 'chrome-extension:') {
       const data = {
         deckbuilderState: localStorage.getItem('deckbuilderState') ? 
