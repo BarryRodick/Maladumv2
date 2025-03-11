@@ -1,6 +1,5 @@
 // service-worker.js for Chrome Extension (Manifest V3)
 
-const EXTENSION_VERSION = '1.0.0';
 const CACHE_NAME = 'maladum-cache-v1';
 const BASE_PATH = '/Maladumv2';
 const ASSETS_TO_CACHE = [
