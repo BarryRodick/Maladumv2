@@ -1861,11 +1861,10 @@ function createCardTypeContainers() {
 // Add this function after the existing initialization functions
 async function loadGameData() {
     try {
-        // Use the correct paths for GitHub Pages
-        const basePath = '/Maladumv2';
+        // Use relative paths since we're in the same directory
         const [cardsResponse, difficultiesResponse] = await Promise.all([
-            fetch(`${basePath}/data/maladumcards.json`),
-            fetch(`${basePath}/data/difficulties.json`)
+            fetch('data/maladumcards.json'),
+            fetch('data/difficulties.json')
         ]);
 
         if (!cardsResponse.ok) {
@@ -1883,22 +1882,37 @@ async function loadGameData() {
 
         // Store the data in our dataStore
         dataStore = {
-            games: {},
+            games: cardsData.games || {},
             sentryTypes: cardsData.sentryTypes || [],
             corrupterTypes: cardsData.corrupterTypes || [],
             heldBackCardTypes: cardsData.heldBackCardTypes || []
         };
 
-        // Process games data
+        // Process games data and extract card types
         if (cardsData.games) {
             Object.entries(cardsData.games).forEach(([gameName, cards]) => {
+                // Get unique card types from all cards
+                const cardTypes = new Set();
+                const specialCardTypes = new Set();
+                
+                cards.forEach(card => {
+                    if (card.type) {
+                        // Regular card types
+                        if (!dataStore.heldBackCardTypes.includes(card.type)) {
+                            cardTypes.add(card.type);
+                        }
+                        // Special card types
+                        if (dataStore.heldBackCardTypes.includes(card.type)) {
+                            specialCardTypes.add(card.type);
+                        }
+                    }
+                });
+
                 dataStore.games[gameName] = {
                     name: gameName,
                     cards: cards,
-                    cardTypes: new Set(cards.map(card => card.type)),
-                    specialCardTypes: new Set(cards.filter(card => 
-                        dataStore.heldBackCardTypes.includes(card.type)
-                    ).map(card => card.type))
+                    cardTypes: Array.from(cardTypes),
+                    specialCardTypes: Array.from(specialCardTypes)
                 };
             });
         }
@@ -1915,7 +1929,7 @@ async function loadGameData() {
         console.log('Game data loaded successfully');
     } catch (error) {
         console.error('Error loading game data:', error);
-        showErrorMessage(`Failed to load game data: ${error.message}`);
+        showErrorMessage(`Failed to load game data: ${error.message}. Please check the console for more details.`);
     }
 }
 
